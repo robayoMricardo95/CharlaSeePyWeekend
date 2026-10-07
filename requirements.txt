@@ -1,0 +1,23 @@
+# Agentes
+langchain>=0.3
+langchain-openai>=0.2
+langgraph>=0.2
+langsmith>=0.1
+
+# Servicio y front
+fastapi>=0.115
+uvicorn[standard]>=0.32
+
+# Notebooks
+jupyterlab>=4.2
+ipywidgets>=8.1
+pandas>=2.2
+matplotlib>=3.9
+
+# Utilidades
+python-dotenv>=1.0
+requests>=2.32
+pyyaml>=6.0
+
+# El paso de datos (datos/*.py) no necesita nada de esto: usa solo sqlite3 y
+# csv de la biblioteca estándar, además de requests para la descarga.

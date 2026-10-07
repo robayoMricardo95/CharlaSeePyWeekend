@@ -1,0 +1,41 @@
+# ---------------------------------------------------------------------------
+# Datos: NADA de lo que se descarga o se procesa va al repositorio.
+# Se regenera entero con 00_setup.ipynb, o desde la terminal con:
+#   cd datos && python descargar.py --descargar && python preparar.py
+# ---------------------------------------------------------------------------
+datos/crudos/
+datos/extraidos/
+datos/*.db
+datos/*.db-journal
+datos/*.db-wal
+datos/*.log
+
+# ---------------------------------------------------------------------------
+# Secretos
+# ---------------------------------------------------------------------------
+.env
+.env.local
+*.key
+
+# ---------------------------------------------------------------------------
+# Python
+# ---------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Los outputs de los notebooks SÍ se commitean a propósito: el repositorio es
+# material de estudio y quien lo abra en GitHub debe ver los resultados sin
+# ejecutar nada. No agregar nbstripout ni un hook que los limpie.
+
+# ---------------------------------------------------------------------------
+# Sistema
+# ---------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+
+BLUEPRINT.md
+CLAUDE.md
+
