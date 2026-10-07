@@ -3,255 +3,292 @@
 **Agentes de analítica con LangChain y LangGraph.**
 Material de la charla para la Sociedad Ecuatoriana de Estadística, semana de Python.
 
-Un agente que responde preguntas de siniestralidad en lenguaje natural sobre una
-base de reclamos médicos: entiende la pregunta, planifica, consulta SQL, valida
-si el resultado responde, reintenta si no, y redacta la respuesta.
+**Objetivo:** conocer los frameworks LangChain y LangGraph para construir agentes
+de inteligencia artificial, aplicados a la analítica: un agente que responde
+preguntas de negocio sobre reclamos médicos consultando la base por sí mismo.
+
+### 🖥️ La presentación
+
+**https://robayomricardo95.github.io/CharlaSeePyWeekend/presentacion/**
+
+También se abre en local: doble clic en `presentacion/index.html`. Tecla **S**
+para las notas del orador, **F** para pantalla completa.
+
+> Para que el enlace funcione, GitHub Pages debe estar activo en el repositorio:
+> *Settings → Pages → Build and deployment → Deploy from a branch → `main` /
+> `(root)` → Save*. Tarda un par de minutos en publicarse.
 
 ---
 
-## Cómo correr esto
+## La ruta: cuatro etapas
 
-### Requisito previo
+| Etapa | Qué se aprende | Dónde |
+|---|---|---|
+| **1 · El LLM básico** | Qué es un LLM, de dónde se trae (Azure AI Foundry, OpenAI, Claude) y cuánto cuesta cada pregunta | [`01_llm_basico/01_llm_y_agente.ipynb`](01_llm_basico/01_llm_y_agente.ipynb) |
+| **2 · LangChain** | El LLM escribe el SQL y nuestro código lo ejecuta: el diccionario de datos, la caché, la tool SQL y la cadena | [`02_langchain/02_langchain.ipynb`](02_langchain/02_langchain.ipynb) |
+| **3 · LangGraph** | El agente es un ciclo (`create_agent`) que decide cuántas consultas hacer, con memoria por hilo | [`03_langgraph/03_langgraph.ipynb`](03_langgraph/03_langgraph.ipynb) |
+| **4 · API y front** | El mismo agente como servicio (FastAPI) y un chat para usarlo (Streamlit) | [`05_api/app.py`](05_api/app.py) · [`06_front/app_streamlit.py`](06_front/app_streamlit.py) |
+
+Antes de todo, [`00_setup.ipynb`](00_setup.ipynb) construye la base y verifica el
+entorno. Los notebooks se guardan **con sus resultados**: se pueden leer en GitHub
+sin ejecutar nada. Cada llamada al modelo imprime el modelo que respondió, sus
+tokens y su costo en dólares.
+
+---
+
+## Cómo correrlo
+
+### 1. Instalar y configurar
 
 ```bash
-git clone <este-repo>
-cd PythonWeekend
+git clone https://github.com/robayoMricardo95/CharlaSeePyWeekend.git
+cd CharlaSeePyWeekend
 pip install -r requirements.txt
-cp .env.example .env     # y pon tus claves dentro
-jupyter lab
+cp .env.example .env          # y completa tus credenciales
 ```
 
-### Paso 1 — Construir la base de datos
+Variables del `.env`:
 
-Todo el procesamiento de datos vive en `datos/` y son **scripts `.py`**, no
-notebooks: se corren una vez y no hay nada que mostrar paso a paso.
+| Variable | Para qué |
+|---|---|
+| `AZURE_OPENAI_BASE_URL`, `AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_MODELO` | El modelo de trabajo: gpt-4.1 en Azure AI Foundry (endpoint terminado en `/openai/v1`) |
+| `OPENAI_API_KEY`, `OPENAI_MODELO` | OpenAI directo (solo el ejemplo 1 del notebook 01) |
+| `ANTHROPIC_API_KEY`, `ANTHROPIC_MODELO` | Claude (solo el ejemplo 1 del notebook 01) |
+
+> **Windows 11:** el *Control de aplicaciones inteligente* bloquea los binarios de
+> `jiter` 0.17 y `tiktoken` 0.14, y sin ellos no carga `openai`. Por eso
+> `requirements.txt` fija `jiter==0.16.0` y `tiktoken==0.13.0`.
+
+### 2. Construir la base
+
+Abre `00_setup.ipynb` y ejecútalo, o desde la terminal:
 
 ```bash
 cd datos
 python descargar.py --descargar   # baja 40 MB desde el CMS y los descomprime
-python preparar.py                # construye la base SQLite y la muestra
+python preparar.py                # construye la base SQLite (~45 s)
+python sabana.py                  # arma la tabla que lee el agente (~30 s)
 cd ..
 ```
 
-| Script | Qué hace |
+### 3. Los notebooks, en orden
+
+`01` → `02` → `03`. Cada uno es independiente: carga su propio modelo y su propio
+diccionario.
+
+### 4. El agente como servicio
+
+Desde la raíz del repositorio, en dos terminales:
+
+```bash
+uvicorn app:app --app-dir 05_api --port 8000     # la API
+streamlit run 06_front/app_streamlit.py          # el chat
+```
+
+- API documentada e interactiva: http://localhost:8000/docs
+- Chat: http://localhost:8501
+
+| Ruta | Qué hace |
 |---|---|
-| `descargar.py` | Verifica los enlaces del CMS, baja los tres `.zip` a `crudos/` y los descomprime en `extraidos/` |
-| `preparar.py` | Construye la base: traduce columnas y valores al español, parte las fechas, normaliza los indicadores crónicos, clasifica los diagnósticos por capítulo de la CIE-9, crea los índices y verifica las ocho trampas |
-| `catalogos.py` | Las tablas de traducción (sexo, raza, estados, capítulos de la CIE-9). No se ejecuta solo; lo importa `preparar.py` |
-| `enriquecer.py` | **Opcional.** Baja las descripciones oficiales de los códigos CIE-9 desde la NLM. Están en inglés; ver más abajo |
+| `POST /chat` | Pregunta → respuesta completa (JSON) |
+| `POST /chat/stream` | Pregunta → cada paso en vivo, una línea JSON por evento |
+| `GET /hilos/{hilo}` | Lo que guarda la memoria de un hilo |
+| `GET /salud` | ¿Está vivo el servicio? |
 
-`preparar.py` imprime la verificación de las ocho trampas con cifras reales al
-terminar. Si algún número no coincide con lo que dice este README, algo se rompió.
+---
 
-Los tres scripts también se usan desde un notebook:
+## Lo que muestra cada etapa (resultados reales)
 
-```python
-from descargar import descargar
-from preparar import main as preparar
-descargar()
-preparar()
-```
+### 1 · El LLM básico
 
-**Si tu red bloquea `cms.gov`** (pasa en redes corporativas y entornos con lista
-blanca), `descargar.py` te lo dirá. Baja los tres `.zip` a mano desde la [página
-de la muestra 1](https://www.cms.gov/data-research/statistics-trends-and-reports/medicare-claims-synthetic-public-use-files/cms-2008-2010-data-entrepreneurs-synthetic-public-use-file-de-synpuf/de10-sample-1),
-descomprímelos en `extraidos/` y corre solo `preparar.py`.
+- La misma pregunta, con LangChain, es **la misma línea** (`modelo.invoke`) para
+  Foundry, OpenAI y Claude. Claude razona antes de responder: en la corrida
+  guardada gastó 80 tokens de salida contra 8-9 de gpt-4.1 (USD 0,000856 contra
+  0,000106).
+- No sabe qué día es ("10 de junio de 2024") ni conoce nuestros datos.
+- El notebook completo cuesta USD 0,005.
 
-### Paso 2 — Los notebooks, en orden
+### 2 · LangChain
 
-**`00_setup.ipynb` es el primero.** No construye nada por su cuenta: ejecuta los
-scripts del paso 1 desde el notebook, verifica que el entorno tenga todo y deja
-la base lista. Está pensado para que cualquiera que clone el repositorio arranque
-de ahí.
+| Escenario | Resultado |
+|---|---|
+| Solo los nombres de las columnas | Escribe `ambito = 'hospitalización'` → `None` |
+| Con el diccionario en el prompt | `ambito = 'Hospitalario'` → **245 512 790** ✓ |
 
-| # | Notebook | De qué va |
-|---|---|---|
-| 00 | `00_setup.ipynb` | Corre el pipeline de datos, verifica paquetes, `.env` y que la base responda |
-| 01 | `01_llm_basico/` | Qué es un LLM, primera llamada, conexión a Azure AI Foundry, capa para cambiar de proveedor |
-| 02 | `02_langchain/` | Prompts, salida estructurada, la herramienta SQL, indexación del diccionario, memoria |
-| 03 | `03_langgraph/` | Estado, nodos, aristas condicionales, ciclos, el grafo dibujado |
-| 04 | `04_evaluacion/` | Trazas con LangSmith, costo, latencia, 20 preguntas como prueba de regresión |
-| 05 | `05_api/` | `app.py` con FastAPI, lanzado y consumido desde el propio notebook |
-| 06 | `06_front/` | `index.html`, servido y mostrado dentro del notebook |
+**La caché** (automática en Foundry):
 
-Los únicos `.py` del proyecto son los de `datos/` y `05_api/app.py`. Todo lo
-demás son notebooks, porque la charla se da ejecutando celdas.
+| Escenario | Tokens de entrada | Con caché | Sin caché | Ahorro |
+|---|---:|---:|---:|---:|
+| Sin diccionario | 161 | USD 0,000658 | 0,000658 | 0 % |
+| Con diccionario | 3 609 | USD 0,002090 | 0,007466 | 72,0 % |
+| Con diccionario, en caché | 3 610 | USD 0,002124 | 0,007500 | 71,7 % |
 
-### Consultar la base
+La pregunta de seguimiento ("¿y comparado con el año anterior…?") necesita
+memoria: con ella el agente mantiene el contexto, pero no siempre acierta. En
+corridas de prueba citó un total hospitalario de 2008 que no había consultado.
+El notebook completo cuesta USD 0,028.
 
-Una vez construida, es un archivo SQLite: cualquier cliente lo abre.
+### 3 · LangGraph
 
-```python
-import sqlite3
-con = sqlite3.connect("datos/reclamos.db")
-con.execute("SELECT sum(monto_pagado) FROM hospitalario WHERE anio = 2009").fetchone()
-```
+Un hilo de conversación sobre el costo ambulatorio, abierto en cuatro pasos:
+panorama (general, sexo y raza) → mayor variación por grupo etario → grupos de
+enfermedad → hallazgo para un gerente.
 
-**La base no está en el repositorio**, ni completa ni en muestra. Pesa 556 MB y
-se reconstruye en menos de un minuto, así que viajarla no tendría sentido.
+Los valores reales: variación general **+20,1 %**; rango por sexo 3,0 puntos; rango
+por raza **4,2** puntos. La regla de "mayor variación" manda abrir raza =
+Hispana (+16,2 %). En la corrida guardada el agente dijo que el mayor rango era
+sexo y abrió Masculino: la verificación automática del notebook lo detecta. El
+notebook completo cuesta USD 0,06.
 
 ---
 
 ## Los datos
 
 **CMS DE-SynPUF**, muestra 1 de 20. Reclamos médicos sintéticos publicados por
-los Centers for Medicare & Medicaid Services de Estados Unidos, construidos a
-partir de una muestra del 5 % de beneficiarios reales de Medicare.
+los Centers for Medicare & Medicaid Services de Estados Unidos.
 
 > Los datos son sintéticos y el CMS alteró deliberadamente las relaciones entre
 > variables para proteger la privacidad. Sirven para construir y probar
 > herramientas; **no admiten inferencia sobre la población real de Medicare.**
 
-| Tabla | Grano | Filas | Reclamos distintos |
-|---|---|---:|---:|
-| `afiliados` | un asegurado | 116 352 | — |
-| `hospitalario` | un segmento de reclamo | 66 773 | 66 705 |
-| `ambulatorio` | un segmento de reclamo | 790 790 | 779 815 |
-| `diagnosticos` | un diagnóstico de un reclamo | 2 611 067 | — |
-| `capitulos_cie9` | un capítulo de la CIE-9, en español | 20 | — |
+### Dos modelos en la misma base
 
-### El diccionario de negocio
+**Desagregado** (lo arma `preparar.py`, documentado en `datos/diccionario.yaml`):
 
-`datos/diccionario.yaml` traduce las columnas crípticas del CMS a nombres de
-negocio, define las métricas en SQL y documenta las ocho trampas del dato.
+| Tabla | Grano | Filas |
+|---|---|---:|
+| `afiliados` | un asegurado | 116 352 |
+| `hospitalario` | un segmento de reclamo | 66 773 |
+| `ambulatorio` | un segmento de reclamo | 790 790 |
+| `diagnosticos` | un diagnóstico de un reclamo | 2 611 067 |
+| `capitulos_cie9` | un capítulo de la CIE-9, en español | 20 |
 
-**Es el archivo más importante del repositorio.** Es lo que lee el agente antes
-de escribir SQL, y la tesis de la charla es justamente esa: el agente no falla
-por el modelo, falla por no saber qué significa cada columna.
+**Agregado** (lo arma `sabana.py`, documentado en `datos/diccionario_sabana.yaml`):
+la tabla `sabana`, **una fila por reclamo**, hospitalario y ambulatorio juntos,
+sin uniones que el agente pueda escribir mal. **Es la única tabla que lee el
+agente.**
+
+- 656 147 reclamos, 25 columnas, solo 2008 y 2009 (los dos años completos).
+- Se retiraron 2007 (solo nov-dic), 2010 (incompleto), 2 016 reclamos con
+  monto negativo y 278 sin fecha.
+- `monto_total` = pagado + deducible + coaseguro + tercero. `monto_pagado` es
+  la métrica por defecto.
+- `edad` a la fecha del reclamo y `banda_edad` (0-5, 6-10 y de 10 en 10 hasta
+  71+). Las bandas de 0 a 20 quedan vacías: Medicare cubre a mayores de 65 y a
+  personas con discapacidad.
+- No permite calcular gasto per cápita: solo tiene afiliados con reclamos.
+
+### El diccionario de la sábana
+
+`datos/diccionario_sabana.yaml` es **lo que lee el agente antes de escribir SQL**:
+el significado y los valores de cada columna, las trampas del dato y consultas de
+ejemplo con su resultado verificado. Los ejemplos se activan por módulo
+(`activa_desde`): los básicos desde el 02, los comparativos y de varios pasos
+desde el 03.
 
 ### Todo en español
 
-No solo los nombres de columna: también los valores.
-
 | Columna | Valores |
 |---|---|
+| `ambito` | Hospitalario, Ambulatorio |
 | `sexo` | Masculino, Femenino |
 | `raza` | Blanca, Negra, Otras, Hispana |
 | `estado` | California, Florida, Texas, Nueva York… (52 valores) |
-| `grupo_enfermedad` | Enfermedades del aparato circulatorio, Neoplasias… (19 capítulos) |
+| `grupo_enfermedad` | Enfermedades del aparato circulatorio, Neoplasias… (capítulos CIE-9) |
 
-Las traducciones están en `datos/catalogos.py`, con su fuente anotada.
-
-Las banderas binarias — los once `cronico_*` y `enfermedad_renal_terminal` — se
-dejaron en **1/0 y no en "Sí"/"No" a propósito**: así `sum(cronico_diabetes)`
-cuenta afiliados con diabetes y `avg()` da la prevalencia, sin escribir un `CASE`
-en cada consulta.
-
-### Lo que no se tradujo
-
-| Qué | Valores distintos | Por qué |
-|---|---:|---|
-| `codigo` CIE-9 de diagnóstico | 11 897 | Sin catálogo oficial en español |
-| `procedimiento_1..6` | 4 005 | Sin catálogo, y muy incompletos |
-| `grupo_drg` | 739 | Catálogo oficial existe, en inglés |
-| `codigo_condado` | 307 | Códigos SSA aleatorizados por el CMS |
-
-Traducir 11 897 términos clínicos sin fuente oficial en español sería inventar
-significados médicos, y eso en un repositorio público es peor que no tenerlos.
-
-La solución es el **capítulo de la CIE-9**: 19 grupos de enfermedad, traducidos
-completos, que vuelven interpretable cualquier análisis de diagnósticos. En vez
-de "el alza está en 41401", el agente responde "el alza está en enfermedades del
-aparato circulatorio".
-
-Si además quieres las descripciones código por código, `datos/enriquecer.py` las
-baja del catálogo de la NLM a una tabla `cie9_descripciones`. Están en inglés,
-es opcional, y el proyecto funciona sin ellas.
-
-### Convenciones de SQLite
-
-SQLite no tiene tipo `DATE`. Las fechas se guardan como texto ISO
-`'AAAA-MM-DD'`, que ordena y compara bien. Las tablas de reclamos tienen además
-`anio`, `mes` y `dia` como enteros derivados de `fecha_inicio`, con `anio` y
-`mes` indexados juntos. Úsalos para filtrar o agrupar en lugar de parsear texto.
+**Lo que no se tradujo:** los 11 897 códigos CIE-9 de diagnóstico, los
+procedimientos y los 739 grupos DRG. Traducir terminología clínica sin fuente
+oficial sería inventar. El agente usa `grupo_enfermedad` para hablar de
+enfermedades, y si cita un código, dice que no tiene su descripción.
+`datos/enriquecer.py` (opcional) baja las descripciones oficiales en inglés.
 
 ---
 
-## Las ocho trampas
+## Las trampas del dato
 
-Las cifras salieron de ejecutar `preparar.py` sobre la muestra 1 del CMS. El
-script las vuelve a verificar cada vez que corre.
+El agente no falla por el modelo: falla por no saber qué significa cada columna.
 
-1. **Los indicadores crónicos venían invertidos.** 1 = sí, 2 = no en el origen.
-   Sumar la columna sin convertirla cuenta a los sanos como enfermos. Resuelto en
-   `preparar.py`; la prevalencia de diabetes queda en 37,9 %, que coincide con el
-   37,96 % del codebook oficial. Si te sale 62 %, la conversión está mal.
-2. **No existe una columna de costo total.** Lo pagado por el asegurador son
-   639 260 180; el costo del episodio (sumando deducible, coaseguro y pago de
-   tercero), 740 188 096. Un 15,8 % de diferencia, suficiente para cambiar una
-   conclusión. El agente debe desambiguar o declarar qué definición usó.
-3. **Hay montos negativos y en cero, y son válidos.** 55 reclamos hospitalarios
-   negativos (mínimo −8 000) y 2 160 en cero. Un `WHERE monto > 0` reflejo los borra.
-4. **Las fechas eran enteros, y el periodo real no es el del nombre del archivo.**
-   Venían como `AAAAMMDD`. Los archivos dicen "2008 a 2010" pero traen 224
-   reclamos hospitalarios de 2007 y 312 ambulatorios.
-5. **Contar filas no es contar reclamos.** Un reclamo largo viene partido en dos
-   segmentos: en ambulatorio, 790 790 filas son 779 815 reclamos. Usa
-   `count(DISTINCT id_reclamo)`.
-6. **Un cuarto de los afiliados no tiene ningún reclamo.** 29 614 de 116 352
-   (25,5 %). Un `INNER JOIN` los desaparece e infla el gasto per cápita.
-7. **Los montos anuales de `afiliados` son solo de 2008**, mientras las tablas de
-   reclamos cubren 2008-2010. Cruzarlos compara un año contra tres.
-8. **`'OTHER'` no es un código de diagnóstico.** El CMS dejó esa cadena literal
-   en las columnas de diagnóstico, 5 675 veces. No es CIE-9, es un marcador de
-   agrupación. Tiene capítulo 99, "Sin clasificar", para que no desaparezca
-   silenciosamente en un `GROUP BY`.
+1. **Los indicadores crónicos venían invertidos** (1 = sí, 2 = no). Convertidos a
+   1/0: la prevalencia de diabetes queda en 37,9 %, como en el codebook (37,96 %).
+2. **No existe un único "costo".** En 2009, `monto_total` es 20,7 % mayor que
+   `monto_pagado`. El agente debe declarar qué definición usó.
+3. **Hay montos en cero, y son válidos.** Un `WHERE monto > 0` reflejo los borra.
+4. **Los archivos dicen 2008-2010, pero traen reclamos de 2007** y 2010 está
+   incompleto.
+5. **Contar filas no es contar reclamos** en las tablas segmentadas. En la
+   sábana, `count(*)` sí cuenta reclamos.
+6. **El 25,5 % de los afiliados no tiene ningún reclamo.** Un `INNER JOIN` los
+   desaparece e infla el gasto per cápita.
+7. **Los montos anuales de `afiliados` son solo de 2008.**
+8. **`'OTHER'` no es un código de diagnóstico**: es un marcador del CMS.
+9. **El segundo segmento de un reclamo no tiene fecha ni diagnóstico.** Un
+   `WHERE anio = 2009` sobre la tabla segmentada lo pierde: da 244 810 270 en
+   hospitalización 2009, contra 245 512 790 en la sábana.
 
-## Preguntas de referencia
+## Preguntas de referencia (sobre la sábana)
 
-Con respuesta verificada. Sirven como prueba de regresión del agente; el SQL de
-cada una está en `diccionario.yaml`.
-
-| Dificultad | Pregunta | Respuesta |
-|---|---|---|
-| Fácil | ¿Cuánto se pagó en hospitalización en 2009? | 244 810 270,00 |
-| Media | ¿Cómo cambió el costo promedio por reclamo entre 2008 y 2009? | 9 311,83 → 9 702,76 (+4,2 %), con 8,8 % menos reclamos |
-| Alta | ¿Qué prestadores tienen estancias más largas que sus pares en el mismo grupo DRG? | — |
-| Media | ¿En qué grupos de enfermedad se concentra el costo hospitalario? | Aparato circulatorio 165 127 000 (15 901 reclamos), respiratorio 75 982 000, lesiones 67 375 420 |
-
-La media es la que rompe una cadena lineal: necesita dos consultas y una
-comparación entre ellas. Ahí es donde entra LangGraph.
+| Pregunta | Respuesta verificada |
+|---|---|
+| ¿Cuánto se pagó en hospitalización en 2009? | 245 512 790 |
+| ¿Cuánto se pagó en ambulatorio en 2009? | 94 184 290 (Femenino 54 452 370, Masculino 39 731 920) |
+| ¿Cómo cambió el costo promedio por reclamo hospitalario, 2008 → 2009? | 9 331,21 → 9 738,71 (+4,4 %), con 8,8 % menos reclamos |
+| ¿Cómo cambió el costo hospitalario total, 2008 → 2009? | 258 063 920 → 245 512 790 (**−4,9 %**: bajó) |
+| ¿Cómo cambió el costo ambulatorio, 2008 → 2009? | 78 449 490 → 94 184 290 (**+20,1 %**) |
+| ¿En qué grupos de enfermedad se concentra el costo hospitalario? | Aparato circulatorio 130 733 060, respiratorio 60 921 100, lesiones y envenenamientos 52 526 820 |
 
 ---
+
+## Estructura
+
+```
+├── 00_setup.ipynb              # construye la base y verifica el entorno
+├── 01_llm_basico/              # etapa 1 · el LLM básico
+├── 02_langchain/               # etapa 2 · LangChain
+├── 03_langgraph/               # etapa 3 · LangGraph
+├── 05_api/app.py               # etapa 4 · el agente como servicio (FastAPI)
+├── 06_front/app_streamlit.py   # etapa 4 · el chat (Streamlit)
+├── presentacion/               # la presentación (reveal.js) y sus imágenes
+├── datos/                      # scripts del pipeline y los dos diccionarios
+├── GUIA_CHARLA.md              # el recorrido de la charla, bloque por bloque
+├── requirements.txt
+└── .env.example
+```
+
+**La base no está en el repositorio** (pesa ~556 MB): se reconstruye en menos de
+un minuto. Tampoco las credenciales: el `.env` está en `.gitignore`.
 
 ## Decisiones de diseño
 
-**SQLite y no un servidor.** Es un archivo, lo lee la biblioteca estándar de
-Python y viaja en el repositorio. Nadie tiene que levantar un contenedor para
-seguir la charla. Lo que se construye encima funciona igual contra PostgreSQL,
-Oracle o SQL Server: lo único que cambia es el conector.
+- **SQLite y no un servidor.** Es un archivo y lo lee la biblioteca estándar. Lo
+  que se construye encima funciona igual contra PostgreSQL, Oracle o SQL Server:
+  cambia el conector.
+- **El paso de datos no usa pandas**: solo `sqlite3` y `csv`, corre en cualquier
+  Python 3.11+.
+- **Una sábana para el agente.** Cada unión es una oportunidad de equivocarse.
+- **El diccionario entero en el prompt, y en caché.** Mientras quepa, es más
+  simple y más barato que una búsqueda vectorial, y no se equivoca al buscar.
+- **Un solo modelo de trabajo** (gpt-4.1 en Foundry). Los otros proveedores
+  aparecen solo para mostrar que con LangChain cambiar es cambiar una línea.
+- **Costo visible en cada llamada.** Toda celda que llama al modelo imprime cuánto
+  costó.
 
-**El paso de datos no usa pandas.** Solo `sqlite3` y `csv` de la biblioteca
-estándar, así corre en cualquier Python 3.11+ sin instalar nada.
+## Pendiente
 
-**Con índices.** SQLite sin índices hace barrido completo en cada join.
-
-**Sin muestra reducida.** Se evaluó y se descartó. Nadie descarga la base: todos
-la construyen con `00_setup.ipynb`. Optimizar su tamaño era resolver un problema
-que no existe.
-
-**Las 45 columnas HCPCS se descartaron.** En hospitalización vienen casi vacías
-porque el pago se calcula por DRG. Solo inflaban la tabla con nulos.
-
-**La tabla `diagnosticos` es derivada, no viene del CMS.** Evita escribir diez
-condiciones `OR` para buscar un diagnóstico en cualquier posición. Las columnas
-anchas `diagnostico_1..10` se conservan porque esa trampa es pedagógicamente útil.
-
-**El capítulo de la CIE-9 se calcula una vez por código distinto**, no por fila.
-Hay 2,6 millones de filas y menos de 12 000 códigos.
-
----
+- `04_evaluacion/`: trazas con LangSmith y preguntas de regresión.
+- La memoria de la API vive en el proceso (`InMemorySaver`): si se reinicia, se
+  pierden los hilos. Para producción, un checkpointer en base de datos.
 
 ## Fuentes
 
 - [CMS DE-SynPUF, muestra 1](https://www.cms.gov/data-research/statistics-trends-and-reports/medicare-claims-synthetic-public-use-files/cms-2008-2010-data-entrepreneurs-synthetic-public-use-file-de-synpuf/de10-sample-1)
 - [Codebook (PDF)](https://www.cms.gov/files/document/de-10-codebook.pdf-0)
 - [Data Users Document (PDF)](https://www.cms.gov/research-statistics-data-and-systems/downloadable-public-use-files/synpufs/downloads/synpuf_dug.pdf)
-
-En esa página de descarga, el enlace del *Beneficiary Summary 2010* de la muestra 1
-apunta por error al archivo de la muestra 20. Es un error del CMS. No afecta a
-este proyecto porque solo se usa el de 2008.
+- Precios de los modelos: [OpenAI · gpt-4.1](https://developers.openai.com/api/docs/models/gpt-4.1),
+  [Azure OpenAI](https://azure.microsoft.com/es-es/pricing/details/azure-openai),
+  [Anthropic](https://platform.claude.com/docs/en/about-claude/pricing) (consultados el 2026-10-07).
 
 ## Licencia
 
-MIT. Los datos del CMS son de dominio público.
+MIT. Los datos del CMS son de dominio público. Los logos de la presentación
+pertenecen a sus respectivos dueños y se usan solo para identificar cada
+herramienta.
