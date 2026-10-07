@@ -14,7 +14,7 @@
 <div class="reveal"><div class="slides">
 
 <!-- ================================================================== PORTADA -->
-<section class="portada" data-background-gradient="linear-gradient(135deg, #0f1e33 0%, #1c3557 100%)">
+<section class="portada centrada" data-background-gradient="linear-gradient(135deg, #0f1e33 0%, #1c3557 100%)">
   <div class="logos">
     <img src="img/python.svg" alt="Python">
     <img src="img/langchain-blanco.svg" alt="LangChain">
@@ -22,11 +22,12 @@
   </div>
   <h1>Python que piensa</h1>
   <p class="sub">Agentes de analítica con LangChain y LangGraph</p>
-  <p class="quien">Sociedad Ecuatoriana de Estadística · Semana de Python</p>
+  <p class="autor">Ricardo Robayo</p>
+  <p class="quien">Sociedad Ecuatoriana de Estadística · Python Weekend · 7 de octubre de 2026</p>
   <div class="objetivo">
     <b>Objetivo:</b> conocer los frameworks <b>LangChain</b> y <b>LangGraph</b> para construir
     agentes de inteligencia artificial, y aplicarlos a la <b>analítica</b>: un agente que responde
-    preguntas de negocio sobre reclamos médicos, consultando la base por sí mismo.
+    preguntas de negocio consultando bases de datos, <b>democratizando la analítica</b> a nivel empresarial.
   </div>
   <aside class="notes">
     Abrir con el objetivo. Tener abiertos antes: Jupyter (01, 02, 03), la consola de Azure AI Foundry,
@@ -35,20 +36,21 @@
   </aside>
 </section>
 
-<!-- ================================================================== RUTA -->
-<section>
+<!-- ================================================================== RUTA (antes de la etapa 1) -->
+<section class="ruta-slide activa-1">
   <h2>La ruta: cuatro etapas</h2>
+  <p class="siguiente">Ahora: etapa 1</p>
   <div class="ruta">
     <div class="etapa e1">
       <div class="num">1</div><h4>El LLM básico</h4>
       <div class="logos"><img src="img/azure.svg" alt="Azure"><img src="img/openai.svg" alt="OpenAI"><img src="img/claude.svg" alt="Claude"></div>
-      <ul><li>Qué es un LLM</li><li>De dónde lo traigo</li><li>Cuánto cuesta</li></ul>
+      <ul><li>Qué es un LLM</li><li>De dónde lo traigo</li><li>Con qué frameworks se orquesta</li><li>Cuánto cuesta</li></ul>
       <code>01_llm_basico</code>
     </div>
     <div class="etapa e2">
       <div class="num">2</div><h4>LangChain</h4>
       <div class="logos"><img src="img/langchain.svg" alt="LangChain"><img src="img/sqlite.svg" alt="SQLite"></div>
-      <ul><li>El diccionario de datos</li><li>La caché</li><li>La tool SQL</li></ul>
+      <ul><li>El diccionario de datos</li><li>Optimizar el costo</li><li>La tool SQL</li></ul>
       <code>02_langchain</code>
     </div>
     <div class="etapa e3">
@@ -64,7 +66,7 @@
       <code>05_api · 06_front</code>
     </div>
   </div>
-  <aside class="notes">Cada etapa abre con una lámina de color y termina en su notebook.</aside>
+  <aside class="notes">Antes de la etapa 1: recordar de dónde venimos y qué sigue.</aside>
 </section>
 
 <!-- ================================================================== ETAPA 1 -->
@@ -102,59 +104,113 @@
 
 <section>
   <div class="cabecera"><span class="chip e1">1 · El LLM básico</span><span class="donde">Notebook 01 · Credenciales y ejemplo 1</span></div>
-  <h2>¿De dónde traigo el modelo?</h2>
-  <div class="tres">
-    <div class="caja"><img class="logo" src="img/azure.svg" alt="Azure">
-      <h3>Azure AI Foundry</h3><p>Deployment, endpoint y key.</p><p>El dato no sale de tu nube; facturación corporativa.</p></div>
-    <div class="caja"><img class="logo" src="img/openai.svg" alt="OpenAI">
-      <h3>OpenAI directo</h3><p>Una key y el nombre del modelo.</p><p>Lo más simple para empezar.</p></div>
-    <div class="caja"><img class="logo" src="img/claude.svg" alt="Claude">
-      <h3>Claude (Anthropic)</h3><p>Una key y el nombre del modelo.</p><p>Razona antes de responder.</p></div>
+  <h2>¿De dónde traigo el modelo? ¿Con qué construyo el agente?</h2>
+  <table class="proveedores">
+    <tr><th>Proveedor</th><th>El modelo: qué necesito</th><th>Su framework de agentes</th></tr>
+    <tr><td><img src="img/azure.svg" alt=""> Azure AI Foundry</td><td>Deployment, endpoint y key. El dato no sale de tu nube</td><td><strong>Microsoft Agent Framework</strong> · .NET y Python</td></tr>
+    <tr><td><img src="img/openai.svg" alt=""> OpenAI</td><td>Una key y el nombre del modelo</td><td><strong>OpenAI Agents SDK</strong></td></tr>
+    <tr><td><img src="img/claude.svg" alt=""> Claude (Anthropic)</td><td>Una key y el nombre del modelo</td><td><strong>Claude Agent SDK</strong></td></tr>
+    <tr><td><img src="img/gemini.svg" alt=""> Google (Gemini)</td><td>Vertex AI o una key de Gemini</td><td><strong>Agent Development Kit (ADK)</strong></td></tr>
+  </table>
+  <div class="langgraph-caja">
+    <div class="lg-titulo"><img src="img/langchain.svg" alt="LangChain"><img src="img/langgraph.svg" alt="LangGraph"><span>Funcionan con todos los proveedores</span></div>
+    <div class="dos">
+      <div>
+        <p class="lg-sub">Para qué sirve cada uno</p>
+        <ul>
+          <li><strong>LangChain:</strong> piezas para conectar modelos.</li>
+          <li><strong>LangGraph:</strong> orquestar agentes con memoria.</li>
+        </ul>
+        <p class="lg-sub">Beneficios</p>
+        <ul>
+          <li>Cambiar de modelo es cambiar <strong>una línea</strong>.</li>
+          <li><strong>Estado y memoria</strong> por conversación.</li>
+          <li>El flujo es un <strong>grafo</strong>: ciclos, reintentos y control humano.</li>
+          <li><strong>Código abierto</strong> y trazas con LangSmith.</li>
+        </ul>
+      </div>
+      <div>
+        <p class="lg-sub">Quién lo usa en producción</p>
+        <ul>
+          <li><strong>Klarna:</strong> asistente para 85 millones de usuarios, 80 % menos tiempo de resolución.</li>
+          <li><strong>LinkedIn:</strong> reclutador con agentes jerárquicos.</li>
+          <li><strong>Uber:</strong> migraciones de código y generación de pruebas.</li>
+          <li><strong>Replit</strong> y <strong>Elastic:</strong> agente de código y asistente de seguridad.</li>
+        </ul>
+      </div>
+    </div>
   </div>
-  <pre><code class="language-python" data-trim>
-foundry        = ChatOpenAI(base_url=..., api_key=..., model="gpt-4.1")
-openai_directo = ChatOpenAI(model="gpt-4.1")
-claude         = ChatAnthropic(model="claude-sonnet-5-5")
-
-respuesta = modelo.invoke(pregunta)        # con LangChain, la MISMA línea para los tres
-  </code></pre>
   <aside class="notes">
     CAMBIO → consola de Azure AI Foundry: catálogo → modelo → Deploy; copiar endpoint y key al .env.
     Mostrar solo hasta el botón de crear (el recurso ya está desplegado: gpt-4.1).
-    En el notebook: el ejemplo 1 se hace de cuatro formas (SDK openai + LangChain x3).
-    De ahí en adelante, todo con LangChain y el modelo de Foundry.
+    Cada proveedor tiene su propio framework de agentes; LangChain y LangGraph son independientes del
+    proveedor. En el notebook, el ejemplo 1 se hace de cuatro formas (SDK openai + LangChain con
+    Foundry, OpenAI y Claude): con LangChain la llamada es la misma, modelo.invoke(pregunta).
+    Microsoft Agent Framework: sucesor de Semantic Kernel y AutoGen. Empresas: fuente LangChain,
+    "Is LangGraph used in production?".
   </aside>
 </section>
 
-<section>
-  <div class="cabecera"><span class="chip e1">1 · El LLM básico</span><span class="donde">Notebook 01 · Lo que cuesta cada pregunta</span></div>
-  <h2>Cada pregunta tiene precio</h2>
-  <div class="dos">
-    <div>
-      <h3>Precio por millón de tokens (USD, 2026-10-07)</h3>
-      <table>
-        <tr><th>Modelo</th><th>Entrada</th><th>En caché</th><th>Salida</th></tr>
-        <tr><td>gpt-4.1</td><td class="num">2,00</td><td class="num">0,50</td><td class="num">8,00</td></tr>
-        <tr><td>claude-sonnet-5-5</td><td class="num">2,00</td><td class="num">0,20</td><td class="num">10,00</td></tr>
-      </table>
+<section class="lamina-precios">
+  <div class="cabecera"><span class="chip e1">1 · El LLM básico</span><span class="donde">Precios oficiales y Arena · octubre 2026</span></div>
+  <h2>¿Cuánto cuesta cada proveedor?</h2>
+  <p class="intro">Lo que cobra cada proveedor <strong>por cada millón de tokens</strong>: los que el modelo <strong>lee</strong> (tu pregunta y el contexto) y los que <strong>escribe</strong> (su respuesta). Un token son unos 4 caracteres.</p>
+  <table class="precios">
+    <tr><th>Gama</th><th><img src="img/claude.svg" alt=""> Anthropic</th><th><img src="img/openai.svg" alt=""> OpenAI</th><th><img src="img/gemini.svg" alt=""> Google</th></tr>
+    <tr><td><strong>Alta</strong><small>el más capaz</small></td><td><span class="modelo">Claude Fable 5.1</span><span class="tarifa">Leer: <b>USD 10</b></span><span class="tarifa">Escribir: <b>USD 50</b></span></td><td><span class="modelo">GPT-6 Astra</span><span class="tarifa">Leer: <b>USD 10</b></span><span class="tarifa">Escribir: <b>USD 50</b></span></td><td>—</td></tr>
+    <tr class="destacada"><td><strong>Media</strong><small>el de todos los días</small></td><td><span class="modelo">Claude Sonnet 5.5</span><span class="tarifa">Leer: <b>USD 2</b></span><span class="tarifa">Escribir: <b>USD 10</b></span></td><td><span class="modelo">GPT-6.1 Sol</span><span class="tarifa">Leer: <b>USD 2</b></span><span class="tarifa">Escribir: <b>USD 10</b></span></td><td><span class="modelo">Gemini 3.1 Pro</span><span class="tarifa">Leer: <b>USD 2</b></span><span class="tarifa">Escribir: <b>USD 12</b></span></td></tr>
+    <tr><td><strong>Económica</strong><small>volumen y velocidad</small></td><td><span class="modelo">Claude Haiku 4.5</span><span class="tarifa">Leer: <b>USD 1</b></span><span class="tarifa">Escribir: <b>USD 5</b></span></td><td><span class="modelo">GPT-6 Luna</span><span class="tarifa">Leer: <b>USD 0,10</b></span><span class="tarifa">Escribir: <b>USD 0,50</b></span></td><td><span class="modelo">Gemini 3.8 Flash</span><span class="tarifa">Leer: <b>USD 0,75</b></span><span class="tarifa">Escribir: <b>USD 3,75</b></span></td></tr>
+  </table>
+  <p class="nota" style="margin-top:0.2em">Ejemplo: con Sonnet 5.5, leer un millón de tokens cuesta USD 2 y escribir un millón, USD 10. Una pregunta normal usa unos pocos miles: cuesta fracciones de centavo.</p>
+  <div class="tres">
+    <div class="caja"><h3>Mismo precio de entrada</h3><p>En la gama media los tres cobran <strong>2 USD</strong> por millón de tokens leídos. La diferencia está en la <strong>salida</strong> y en cuánto "piensa" cada modelo antes de responder.</p></div>
+    <div class="caja"><h3>Seguir instrucciones</h3><p>En la Arena, la familia <strong>Claude</strong> ocupa 10 de los 11 primeros puestos. En la gama media, <strong>Sonnet 5.5 y GPT-6.1 Sol empatan</strong> dentro del margen.</p></div>
+    <div class="caja"><h3>Pensar también se cobra</h3><p>En el notebook, la misma pregunta costó <strong>~8 veces más</strong> con Claude que con gpt-4.1: razona antes de responder, y eso se cobra como salida.</p></div>
+  </div>
+  <aside class="notes">
+    Hablar en general, sin tecnicismos: cada proveedor tiene tres gamas y en la gama media cuestan casi lo
+    mismo. Precios oficiales consultados el 2026-10-07: platform.claude.com/pricing, developers.openai.com/api/docs/pricing,
+    ai.google.dev/gemini-api/docs/pricing. Gemini 3.8 Flash: precio introductorio hasta el 31-12-2026.
+    Arena (arena.ai, categoría Instruction Following): Sonnet 5.5 = 1484 ± 18 (puesto 18), GPT-6.1 Sol = 1490 ± 19
+    (puesto 13), Gemini 3.1 Pro = 1480 ± 4 (puesto 20); el primero es Gemini 4 Argon y del 2 al 11 son casi todos Claude.
+    En el ranking general de texto Sonnet 5.5 queda más abajo (puesto 45): la ventaja de Claude está en
+    seguir instrucciones, que es lo que importa cuando el resultado entra a un proceso.
+    El notebook 01 usa gpt-4.1 (2 / 8): la comparación medida fue gpt-4.1 contra Sonnet 5.5
+    (USD 0,000106 contra 0,000856). El notebook 01 completo costó USD 0,005386.
+  </aside>
+</section>
+
+<!-- ================================================================== RUTA (antes de la etapa 2) -->
+<section class="ruta-slide activa-2">
+  <h2>La ruta: cuatro etapas</h2>
+  <p class="siguiente">Ahora: etapa 2</p>
+  <div class="ruta">
+    <div class="etapa e1">
+      <div class="num">1</div><h4>El LLM básico</h4>
+      <div class="logos"><img src="img/azure.svg" alt="Azure"><img src="img/openai.svg" alt="OpenAI"><img src="img/claude.svg" alt="Claude"></div>
+      <ul><li>Qué es un LLM</li><li>De dónde lo traigo</li><li>Con qué frameworks se orquesta</li><li>Cuánto cuesta</li></ul>
+      <code>01_llm_basico</code>
     </div>
-    <div>
-      <h3>La misma pregunta, tres proveedores</h3>
-      <table>
-        <tr><th>Proveedor</th><th>Tokens de salida</th><th>Costo</th></tr>
-        <tr><td>Foundry · gpt-4.1</td><td class="num">9</td><td class="num">USD 0,000106</td></tr>
-        <tr><td>OpenAI · gpt-4.1</td><td class="num">8</td><td class="num">USD 0,000098</td></tr>
-        <tr><td>Claude · Sonnet 5.5</td><td class="num">80</td><td class="num">USD 0,000856</td></tr>
-      </table>
+    <div class="etapa e2">
+      <div class="num">2</div><h4>LangChain</h4>
+      <div class="logos"><img src="img/langchain.svg" alt="LangChain"><img src="img/sqlite.svg" alt="SQLite"></div>
+      <ul><li>El diccionario de datos</li><li>Optimizar el costo</li><li>La tool SQL</li></ul>
+      <code>02_langchain</code>
+    </div>
+    <div class="etapa e3">
+      <div class="num">3</div><h4>LangGraph</h4>
+      <div class="logos"><img src="img/langgraph.svg" alt="LangGraph"></div>
+      <ul><li>El agente: un ciclo</li><li>La memoria por hilo</li><li>Verificar</li></ul>
+      <code>03_langgraph</code>
+    </div>
+    <div class="etapa e4">
+      <div class="num">4</div><h4>API y front</h4>
+      <div class="logos"><img src="img/fastapi.svg" alt="FastAPI"><img src="img/streamlit.svg" alt="Streamlit"></div>
+      <ul><li>El agente como servicio</li><li>Un chat para usarlo</li></ul>
+      <code>05_api · 06_front</code>
     </div>
   </div>
-  <p class="frase">Razonar cuesta: Claude gastó ~8 veces más en la misma pregunta.</p>
-  <p class="nota">En los notebooks, cada llamada imprime el modelo, sus tokens, su costo y el acumulado.
-     El notebook 01 completo: USD 0,005386.</p>
-  <aside class="notes">
-    La columna "en caché" se explica en la etapa 2. Los tokens de razonamiento de Claude se cobran
-    como salida y varían entre corridas.
-  </aside>
+  <aside class="notes">Antes de la etapa 2: recordar de dónde venimos y qué sigue.</aside>
 </section>
 
 <!-- ================================================================== ETAPA 2 -->
@@ -189,15 +245,17 @@ respuesta = modelo.invoke(pregunta)        # con LangChain, la MISMA línea para
 
 <section>
   <div class="cabecera"><span class="chip e2">2 · LangChain</span><span class="donde">Notebook 02 · Parte 3 · La caché</span></div>
-  <h2>El diccionario cuesta. La caché lo abarata.</h2>
+  <h2>Optimizar el costo: la caché del prompt</h2>
+  <p class="intro">El diccionario hace que el SQL salga bien, pero viaja <strong>entero en cada pregunta</strong> y se cobra cada vez.
+     La <strong>caché</strong> es la optimización: el proveedor recuerda el inicio del prompt y lo cobra más barato.</p>
   <table>
     <tr><th>Escenario</th><th>Tokens de entrada</th><th>De caché</th><th>Con caché</th><th>Sin caché</th><th>Ahorro</th></tr>
     <tr><td>1. Sin diccionario</td><td class="num">161</td><td class="num">0</td><td class="num">USD 0,000658</td><td class="num">0,000658</td><td class="num">0 %</td></tr>
     <tr><td>2. Con diccionario</td><td class="num">3 609</td><td class="num">3 584</td><td class="num">USD 0,002090</td><td class="num">0,007466</td><td class="num ok">72,0 %</td></tr>
     <tr><td>3. Con diccionario, en caché</td><td class="num">3 610</td><td class="num">3 584</td><td class="num">USD 0,002124</td><td class="num">0,007500</td><td class="num ok">71,7 %</td></tr>
   </table>
-  <ul>
-    <li>El proveedor guarda el <strong>inicio</strong> del prompt (instrucciones + diccionario). Si la siguiente llamada empieza igual, esa parte cuesta 0,50 en vez de 2,00.</li>
+  <ul class="compacta">
+    <li>El proveedor guarda el <strong>inicio</strong> del prompt (instrucciones + diccionario). Si la siguiente llamada empieza igual, esa parte cuesta <strong>0,50 en vez de 2,00</strong> por millón de tokens (gpt-4.1).</li>
     <li>La pregunta va al final: puede cambiar sin romper la caché. Un cambio antes de ella, y se pierde.</li>
   </ul>
   <aside class="notes">
@@ -244,6 +302,39 @@ cadena_completa = (
     Mostrar la verificación del notebook: el SQL filtró hospitalización (Sí) y advirtió que bajó (Sí).
     El argumento: la verificación la hicimos nosotros, a mano. Puente a LangGraph.
   </aside>
+</section>
+
+<!-- ================================================================== RUTA (antes de la etapa 3) -->
+<section class="ruta-slide activa-3">
+  <h2>La ruta: cuatro etapas</h2>
+  <p class="siguiente">Ahora: etapa 3</p>
+  <div class="ruta">
+    <div class="etapa e1">
+      <div class="num">1</div><h4>El LLM básico</h4>
+      <div class="logos"><img src="img/azure.svg" alt="Azure"><img src="img/openai.svg" alt="OpenAI"><img src="img/claude.svg" alt="Claude"></div>
+      <ul><li>Qué es un LLM</li><li>De dónde lo traigo</li><li>Con qué frameworks se orquesta</li><li>Cuánto cuesta</li></ul>
+      <code>01_llm_basico</code>
+    </div>
+    <div class="etapa e2">
+      <div class="num">2</div><h4>LangChain</h4>
+      <div class="logos"><img src="img/langchain.svg" alt="LangChain"><img src="img/sqlite.svg" alt="SQLite"></div>
+      <ul><li>El diccionario de datos</li><li>Optimizar el costo</li><li>La tool SQL</li></ul>
+      <code>02_langchain</code>
+    </div>
+    <div class="etapa e3">
+      <div class="num">3</div><h4>LangGraph</h4>
+      <div class="logos"><img src="img/langgraph.svg" alt="LangGraph"></div>
+      <ul><li>El agente: un ciclo</li><li>La memoria por hilo</li><li>Verificar</li></ul>
+      <code>03_langgraph</code>
+    </div>
+    <div class="etapa e4">
+      <div class="num">4</div><h4>API y front</h4>
+      <div class="logos"><img src="img/fastapi.svg" alt="FastAPI"><img src="img/streamlit.svg" alt="Streamlit"></div>
+      <ul><li>El agente como servicio</li><li>Un chat para usarlo</li></ul>
+      <code>05_api · 06_front</code>
+    </div>
+  </div>
+  <aside class="notes">Antes de la etapa 3: recordar de dónde venimos y qué sigue.</aside>
 </section>
 
 <!-- ================================================================== ETAPA 3 -->
@@ -296,6 +387,39 @@ cadena_completa = (
     La regla está en sus instrucciones y aun así se equivocó con sus propias cifras. Esto es lo que
     justifica la observabilidad (trazas, pruebas de regresión). Notebook 03 completo: USD 0,060624.
   </aside>
+</section>
+
+<!-- ================================================================== RUTA (antes de la etapa 4) -->
+<section class="ruta-slide activa-4">
+  <h2>La ruta: cuatro etapas</h2>
+  <p class="siguiente">Ahora: etapa 4</p>
+  <div class="ruta">
+    <div class="etapa e1">
+      <div class="num">1</div><h4>El LLM básico</h4>
+      <div class="logos"><img src="img/azure.svg" alt="Azure"><img src="img/openai.svg" alt="OpenAI"><img src="img/claude.svg" alt="Claude"></div>
+      <ul><li>Qué es un LLM</li><li>De dónde lo traigo</li><li>Con qué frameworks se orquesta</li><li>Cuánto cuesta</li></ul>
+      <code>01_llm_basico</code>
+    </div>
+    <div class="etapa e2">
+      <div class="num">2</div><h4>LangChain</h4>
+      <div class="logos"><img src="img/langchain.svg" alt="LangChain"><img src="img/sqlite.svg" alt="SQLite"></div>
+      <ul><li>El diccionario de datos</li><li>Optimizar el costo</li><li>La tool SQL</li></ul>
+      <code>02_langchain</code>
+    </div>
+    <div class="etapa e3">
+      <div class="num">3</div><h4>LangGraph</h4>
+      <div class="logos"><img src="img/langgraph.svg" alt="LangGraph"></div>
+      <ul><li>El agente: un ciclo</li><li>La memoria por hilo</li><li>Verificar</li></ul>
+      <code>03_langgraph</code>
+    </div>
+    <div class="etapa e4">
+      <div class="num">4</div><h4>API y front</h4>
+      <div class="logos"><img src="img/fastapi.svg" alt="FastAPI"><img src="img/streamlit.svg" alt="Streamlit"></div>
+      <ul><li>El agente como servicio</li><li>Un chat para usarlo</li></ul>
+      <code>05_api · 06_front</code>
+    </div>
+  </div>
+  <aside class="notes">Antes de la etapa 4: recordar de dónde venimos y qué sigue.</aside>
 </section>
 
 <!-- ================================================================== ETAPA 4 -->

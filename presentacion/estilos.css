@@ -143,3 +143,55 @@
 
 /* Un bloque de código dentro de dos columnas no se estira hasta la altura de la otra. */
 .dos > pre { align-self: start; }
+
+/* ------------------------------------------------------------- portada centrada */
+.reveal .slides section.portada.centrada { text-align: center; }
+.portada.centrada .logos { justify-content: center; }
+.portada .autor { color: #ffffff; font-size: 0.8em; font-weight: 700; margin: 0.6em 0 0; }
+.portada.centrada .objetivo { text-align: left; max-width: 1050px; margin-left: auto; margin-right: auto; }
+
+/* ------------------------------------------------------------- proveedores y frameworks */
+.reveal table.proveedores { font-size: 0.5em; }
+.reveal table.proveedores td { vertical-align: middle; }
+.reveal table.proveedores img { height: 1.4em; margin: 0 6px 0 0; vertical-align: middle; }
+.langgraph-caja {
+  margin-top: 0.5em; padding: 12px 18px; border-radius: 14px;
+  background: #eef4f1; border: 1px solid #cfe1d7; font-size: 0.5em;
+}
+.langgraph-caja .lg-titulo { display: flex; align-items: center; gap: 14px; font-weight: 800; font-size: 1.15em; }
+.langgraph-caja .lg-titulo img { height: 1.7em; margin: 0; }
+.langgraph-caja ul { margin: 0.4em 0 0 1.1em; }
+.langgraph-caja li + li { margin-top: 0.15em; }
+.langgraph-caja .lg-sub { margin: 0.5em 0 0; font-weight: 700; color: var(--e2); text-transform: uppercase; font-size: 0.8em; letter-spacing: 0.04em; }
+.reveal p.intro { font-size: 0.75em; }
+.reveal ul.compacta { font-size: 0.72em; }
+
+/* ------------------------------------------------------------- precios por gama */
+.reveal table.precios { font-size: 0.5em; text-align: center; }
+.reveal table.precios th img { height: 1.3em; margin: 0 6px 0 0; vertical-align: middle; }
+.reveal table.precios td:first-child { text-align: left; }
+.reveal table.precios td small { display: block; color: var(--suave); font-weight: 400; }
+.reveal table.precios b { color: var(--tinta); font-size: 1.1em; }
+.reveal table.precios tr.destacada td { background: #eef4f6; }
+.tres .caja h3 { font-size: 1.05em; color: var(--e1); }
+
+/* ------------------------------------------------------------- precios: leer / escribir */
+.reveal table.precios td .modelo { display: block; font-weight: 700; margin-bottom: 4px; }
+.reveal table.precios td .tarifa { display: block; color: var(--suave); }
+.reveal table.precios td .tarifa b { color: var(--tinta); }
+
+/* ------------------------------------------------------------- la ruta antes de cada etapa */
+.siguiente { font-size: 0.6em; font-weight: 700; color: var(--suave); margin: -0.4em 0 0.4em; }
+.ruta-slide .etapa { opacity: 0.38; transition: none; }
+.ruta-slide.activa-1 .etapa.e1, .ruta-slide.activa-2 .etapa.e2,
+.ruta-slide.activa-3 .etapa.e3, .ruta-slide.activa-4 .etapa.e4 {
+  opacity: 1; box-shadow: 0 10px 28px rgba(30, 42, 59, 0.16); transform: translateY(-6px);
+}
+
+/* La lámina de precios lleva mucho: todo un poco más compacto. */
+.lamina-precios h2 { margin-bottom: 0.25em; }
+.lamina-precios p.intro { font-size: 0.62em; margin: 0 0 0.3em; }
+.reveal .lamina-precios table.precios { font-size: 0.44em; margin: 0.2em 0; }
+.reveal .lamina-precios table.precios td, .reveal .lamina-precios table.precios th { padding: 5px 10px; }
+.lamina-precios .tres { gap: 14px; margin-top: 0.3em; }
+.lamina-precios .tres .caja { font-size: 0.5em; padding: 10px 14px; }
