@@ -1,6 +1,7 @@
 # Agentes
 langchain>=0.3
 langchain-openai>=0.2
+openai>=1.50
 langgraph>=0.2
 langsmith>=0.1
 
