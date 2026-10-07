@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Python que piensa</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- ================================================================== PORTADA -->
+<section class="portada" data-background-gradient="linear-gradient(135deg, #0f1e33 0%, #1c3557 100%)">
+  <div class="logos">
+    <img src="img/python.svg" alt="Python">
+    <img src="img/langchain-blanco.svg" alt="LangChain">
+    <img src="img/langgraph-blanco.svg" alt="LangGraph">
+  </div>
+  <h1>Python que piensa</h1>
+  <p class="sub">Agentes de analítica con LangChain y LangGraph</p>
+  <p class="quien">Sociedad Ecuatoriana de Estadística · Semana de Python</p>
+  <div class="objetivo">
+    <b>Objetivo:</b> conocer los frameworks <b>LangChain</b> y <b>LangGraph</b> para construir
+    agentes de inteligencia artificial, y aplicarlos a la <b>analítica</b>: un agente que responde
+    preguntas de negocio sobre reclamos médicos, consultando la base por sí mismo.
+  </div>
+  <aside class="notes">
+    Abrir con el objetivo. Tener abiertos antes: Jupyter (01, 02, 03), la consola de Azure AI Foundry,
+    una terminal con la API (puerto 8000) y el navegador con Streamlit (puerto 8501).
+    Datos: reclamos médicos SINTÉTICOS del CMS (Medicare). Decirlo en voz alta.
+  </aside>
+</section>
+
+<!-- ================================================================== RUTA -->
+<section>
+  <h2>La ruta: cuatro etapas</h2>
+  <div class="ruta">
+    <div class="etapa e1">
+      <div class="num">1</div><h4>El LLM básico</h4>
+      <div class="logos"><img src="img/azure.svg" alt="Azure"><img src="img/openai.svg" alt="OpenAI"><img src="img/claude.svg" alt="Claude"></div>
+      <ul><li>Qué es un LLM</li><li>De dónde lo traigo</li><li>Cuánto cuesta</li></ul>
+      <code>01_llm_basico</code>
+    </div>
+    <div class="etapa e2">
+      <div class="num">2</div><h4>LangChain</h4>
+      <div class="logos"><img src="img/langchain.svg" alt="LangChain"><img src="img/sqlite.svg" alt="SQLite"></div>
+      <ul><li>El diccionario de datos</li><li>La caché</li><li>La tool SQL</li></ul>
+      <code>02_langchain</code>
+    </div>
+    <div class="etapa e3">
+      <div class="num">3</div><h4>LangGraph</h4>
+      <div class="logos"><img src="img/langgraph.svg" alt="LangGraph"></div>
+      <ul><li>El agente: un ciclo</li><li>La memoria por hilo</li><li>Verificar</li></ul>
+      <code>03_langgraph</code>
+    </div>
+    <div class="etapa e4">
+      <div class="num">4</div><h4>API y front</h4>
+      <div class="logos"><img src="img/fastapi.svg" alt="FastAPI"><img src="img/streamlit.svg" alt="Streamlit"></div>
+      <ul><li>El agente como servicio</li><li>Un chat para usarlo</li></ul>
+      <code>05_api · 06_front</code>
+    </div>
+  </div>
+  <aside class="notes">Cada etapa abre con una lámina de color y termina en su notebook.</aside>
+</section>
+
+<!-- ================================================================== ETAPA 1 -->
+<section class="separador" data-background-color="#2b7a8b">
+  <div class="numero">Etapa 1</div>
+  <h1>El LLM básico</h1>
+  <p class="que">Qué es un modelo de lenguaje, de dónde se trae y cuánto cuesta cada pregunta.</p>
+  <div class="nb">Notebook · 01_llm_basico/01_llm_y_agente.ipynb</div>
+  <div class="logos"><img src="img/azure.svg" alt="Azure"><img src="img/openai.svg" alt="OpenAI"><img src="img/claude.svg" alt="Claude"></div>
+</section>
+
+<section>
+  <div class="cabecera"><span class="chip e1">1 · El LLM básico</span><span class="donde">Notebook 01 · Partes 1 y 2</span></div>
+  <h2>Un LLM predice el siguiente pedazo de texto</h2>
+  <div class="dos">
+    <div class="caja">
+      <h3>Lo que es</h3>
+      <p>Un programa que <strong>completa texto</strong> a partir de lo que leyó al entrenarse.</p>
+      <p>Vive en un servidor del proveedor y se le habla por internet, con una <strong>key</strong>.</p>
+      <p>Se cobra por <strong>token</strong> (≈ 4 caracteres): entrada y salida, por separado.</p>
+    </div>
+    <div class="caja mal">
+      <h3>Lo que no puede</h3>
+      <p><em>"¿Qué fecha es hoy?"</em> → <strong>"10 de junio de 2024"</strong>. No tiene reloj.</p>
+      <p><em>"¿Cuánto se pagó en hospitalización en 2009?"</em> → pide que le pasemos los datos.
+         La base dice <strong>245 512 790</strong>.</p>
+    </div>
+  </div>
+  <p class="frase">Para responder sobre nuestra base necesita contexto y una herramienta.</p>
+  <aside class="notes">
+    En el notebook: ejemplo 2 (rol system), ejemplo 3 (temperatura 0 repite, 1 varía),
+    ejemplo 4 (max_tokens=15 corta: finish_reason = length). Después la Parte 2: fecha y datos.
+  </aside>
+</section>
+
+<section>
+  <div class="cabecera"><span class="chip e1">1 · El LLM básico</span><span class="donde">Notebook 01 · Credenciales y ejemplo 1</span></div>
+  <h2>¿De dónde traigo el modelo?</h2>
+  <div class="tres">
+    <div class="caja"><img class="logo" src="img/azure.svg" alt="Azure">
+      <h3>Azure AI Foundry</h3><p>Deployment, endpoint y key.</p><p>El dato no sale de tu nube; facturación corporativa.</p></div>
+    <div class="caja"><img class="logo" src="img/openai.svg" alt="OpenAI">
+      <h3>OpenAI directo</h3><p>Una key y el nombre del modelo.</p><p>Lo más simple para empezar.</p></div>
+    <div class="caja"><img class="logo" src="img/claude.svg" alt="Claude">
+      <h3>Claude (Anthropic)</h3><p>Una key y el nombre del modelo.</p><p>Razona antes de responder.</p></div>
+  </div>
+  <pre><code class="language-python" data-trim>
+foundry        = ChatOpenAI(base_url=..., api_key=..., model="gpt-4.1")
+openai_directo = ChatOpenAI(model="gpt-4.1")
+claude         = ChatAnthropic(model="claude-sonnet-5-5")
+
+respuesta = modelo.invoke(pregunta)        # con LangChain, la MISMA línea para los tres
+  </code></pre>
+  <aside class="notes">
+    CAMBIO → consola de Azure AI Foundry: catálogo → modelo → Deploy; copiar endpoint y key al .env.
+    Mostrar solo hasta el botón de crear (el recurso ya está desplegado: gpt-4.1).
+    En el notebook: el ejemplo 1 se hace de cuatro formas (SDK openai + LangChain x3).
+    De ahí en adelante, todo con LangChain y el modelo de Foundry.
+  </aside>
+</section>
+
+<section>
+  <div class="cabecera"><span class="chip e1">1 · El LLM básico</span><span class="donde">Notebook 01 · Lo que cuesta cada pregunta</span></div>
+  <h2>Cada pregunta tiene precio</h2>
+  <div class="dos">
+    <div>
+      <h3>Precio por millón de tokens (USD, 2026-10-07)</h3>
+      <table>
+        <tr><th>Modelo</th><th>Entrada</th><th>En caché</th><th>Salida</th></tr>
+        <tr><td>gpt-4.1</td><td class="num">2,00</td><td class="num">0,50</td><td class="num">8,00</td></tr>
+        <tr><td>claude-sonnet-5-5</td><td class="num">2,00</td><td class="num">0,20</td><td class="num">10,00</td></tr>
+      </table>
+    </div>
+    <div>
+      <h3>La misma pregunta, tres proveedores</h3>
+      <table>
+        <tr><th>Proveedor</th><th>Tokens de salida</th><th>Costo</th></tr>
+        <tr><td>Foundry · gpt-4.1</td><td class="num">9</td><td class="num">USD 0,000106</td></tr>
+        <tr><td>OpenAI · gpt-4.1</td><td class="num">8</td><td class="num">USD 0,000098</td></tr>
+        <tr><td>Claude · Sonnet 5.5</td><td class="num">80</td><td class="num">USD 0,000856</td></tr>
+      </table>
+    </div>
+  </div>
+  <p class="frase">Razonar cuesta: Claude gastó ~8 veces más en la misma pregunta.</p>
+  <p class="nota">En los notebooks, cada llamada imprime el modelo, sus tokens, su costo y el acumulado.
+     El notebook 01 completo: USD 0,005386.</p>
+  <aside class="notes">
+    La columna "en caché" se explica en la etapa 2. Los tokens de razonamiento de Claude se cobran
+    como salida y varían entre corridas.
+  </aside>
+</section>
+
+<!-- ================================================================== ETAPA 2 -->
+<section class="separador" data-background-color="#3d7d5e">
+  <div class="numero">Etapa 2</div>
+  <h1>LangChain</h1>
+  <p class="que">El LLM escribe el SQL; nuestro código lo ejecuta. Lo que decide si acierta es el contexto que le damos.</p>
+  <div class="nb">Notebook · 02_langchain/02_langchain.ipynb</div>
+  <div class="logos"><img src="img/langchain-blanco.svg" alt="LangChain"><img src="img/sqlite.svg" alt="SQLite"></div>
+</section>
+
+<section>
+  <div class="cabecera"><span class="chip e2">2 · LangChain</span><span class="donde">Notebook 02 · Partes 1 y 2</span></div>
+  <h2>El dato y el diccionario</h2>
+  <p>La tabla <code>sabana</code>: <strong>una fila por reclamo</strong>, 656 147 reclamos de 2008 y 2009.
+     Un caso: una afiliada de Oregón, 69 años, 4 reclamos en 2009; la aseguradora pagó 3 160 y la atención costó 4 278.</p>
+  <div class="dos">
+    <div class="caja mal"><h3>Escenario 1 · solo los nombres de las columnas</h3>
+      <pre><code class="language-sql" data-trim>WHERE ambito = 'hospitalización'</code></pre>
+      <p>Resultado: <span class="no">None</span>. El SQL corre… y responde mal.</p></div>
+    <div class="caja bien"><h3>Escenario 2 · con el diccionario</h3>
+      <pre><code class="language-sql" data-trim>WHERE ambito = 'Hospitalario'</code></pre>
+      <p>Resultado: <span class="ok">245 512 790</span> ✓</p></div>
+  </div>
+  <p class="frase">El agente no falla por el modelo: falla por no saber qué significa cada columna.</p>
+  <aside class="notes">
+    El diccionario: 25 columnas, 7 trampas del dato, 10 consultas de ejemplo (12 053 caracteres).
+    Después, los dos tipos de pregunta: un solo número (ambulatorio 2009: 94 184 290) y agrupada
+    por sexo (Femenino 54 452 370, Masculino 39 731 920). Las dos coinciden con la base.
+  </aside>
+</section>
+
+<section>
+  <div class="cabecera"><span class="chip e2">2 · LangChain</span><span class="donde">Notebook 02 · Parte 3 · La caché</span></div>
+  <h2>El diccionario cuesta. La caché lo abarata.</h2>
+  <table>
+    <tr><th>Escenario</th><th>Tokens de entrada</th><th>De caché</th><th>Con caché</th><th>Sin caché</th><th>Ahorro</th></tr>
+    <tr><td>1. Sin diccionario</td><td class="num">161</td><td class="num">0</td><td class="num">USD 0,000658</td><td class="num">0,000658</td><td class="num">0 %</td></tr>
+    <tr><td>2. Con diccionario</td><td class="num">3 609</td><td class="num">3 584</td><td class="num">USD 0,002090</td><td class="num">0,007466</td><td class="num ok">72,0 %</td></tr>
+    <tr><td>3. Con diccionario, en caché</td><td class="num">3 610</td><td class="num">3 584</td><td class="num">USD 0,002124</td><td class="num">0,007500</td><td class="num ok">71,7 %</td></tr>
+  </table>
+  <ul>
+    <li>El proveedor guarda el <strong>inicio</strong> del prompt (instrucciones + diccionario). Si la siguiente llamada empieza igual, esa parte cuesta 0,50 en vez de 2,00.</li>
+    <li>La pregunta va al final: puede cambiar sin romper la caché. Un cambio antes de ella, y se pierde.</li>
+  </ul>
+  <aside class="notes">
+    En Foundry la caché es automática (prefijo idéntico de más de 1 024 tokens). El tope de ahorro es 75 %
+    de la entrada; la salida nunca se descuenta. Dura de minutos a ~1 hora sin uso.
+  </aside>
+</section>
+
+<section>
+  <div class="cabecera"><span class="chip e2">2 · LangChain</span><span class="donde">Notebook 02 · Parte 4 · La tool</span></div>
+  <h2>El LLM escribe, nuestro código ejecuta</h2>
+  <div class="flujo">
+    <div class="paso">El modelo pide<small>tool_calls[0] con el SQL</small></div><span class="flecha">→</span>
+    <div class="paso" style="border-color:var(--bien)">Nuestro código ejecuta<small>@tool ejecutar_sql · solo lectura</small></div><span class="flecha">→</span>
+    <div class="paso">El modelo redacta<small>con el resultado</small></div>
+  </div>
+  <pre><code class="language-python" data-trim>
+cadena_completa = (
+    RunnablePassthrough.assign(respuesta_sql=plantilla | foundry)          # 1. escribe el SQL
+    | RunnablePassthrough.assign(sql=...)                                   # 2. lo limpia
+    | RunnablePassthrough.assign(filas=lambda d: ejecutar_sql.invoke(...))  # 3. la tool lo ejecuta
+    | RunnablePassthrough.assign(respuesta_final=plantilla_redaccion | foundry)  # 4. redacta
+)
+  </code></pre>
+  <p class="nota">La forma rápida: todo en una sola llamada. Redactar cuesta casi nada (114 tokens, USD 0,000476): el peso está en el diccionario.</p>
+  <aside class="notes">
+    Pasos 1 a 6 en el notebook: definir la tool (el docstring es lo que lee el modelo), ver su ficha,
+    ejecutarla a mano, bind_tools, el modelo pide, nuestro código ejecuta, el modelo redacta.
+    "Lo que recibe el modelo": [SystemMessage(sistema), HumanMessage(pregunta)].
+  </aside>
+</section>
+
+<section>
+  <div class="cabecera"><span class="chip e2">2 · LangChain</span><span class="donde">Notebook 02 · Parte 5</span></div>
+  <h2>"¿Y comparado con el año anterior, en qué grupos se concentró el alza?"</h2>
+  <ul>
+    <li><strong>Memoria</strong> en LangChain = volver a mandar la conversación anterior en la lista de mensajes.</li>
+    <li>Con memoria, el agente filtró hospitalización y advirtió que el costo <strong>bajó</strong>: no hubo alza.</li>
+    <li><strong>No siempre acierta:</strong> en corridas de prueba citó un total hospitalario de 2008 que no consultó
+        (258 206 340 y 258 185 900). El real: <strong>258 063 920</strong>.</li>
+  </ul>
+  <p class="frase mal">Responde con seguridad. Nadie revisa cuándo se equivoca.</p>
+  <aside class="notes">
+    Mostrar la verificación del notebook: el SQL filtró hospitalización (Sí) y advirtió que bajó (Sí).
+    El argumento: la verificación la hicimos nosotros, a mano. Puente a LangGraph.
+  </aside>
+</section>
+
+<!-- ================================================================== ETAPA 3 -->
+<section class="separador" data-background-color="#5a5fa8">
+  <div class="numero">Etapa 3</div>
+  <h1>LangGraph</h1>
+  <p class="que">El agente es un ciclo: el modelo decide cuántas consultas hacer. La memoria guarda cada conversación.</p>
+  <div class="nb">Notebook · 03_langgraph/03_langgraph.ipynb</div>
+  <div class="logos"><img src="img/langgraph-blanco.svg" alt="LangGraph"></div>
+</section>
+
+<section>
+  <div class="cabecera"><span class="chip e3">3 · LangGraph</span><span class="donde">Notebook 03 · Partes 1 y 2</span></div>
+  <h2>Un hilo, cuatro pasos, cada uno abre el anterior</h2>
+  <div class="flujo">
+    <div class="paso">inicio</div><span class="flecha">→</span>
+    <div class="paso">model<small>¿pido una consulta o respondo?</small></div><span class="flecha">⇄</span>
+    <div class="paso" style="border-color:var(--bien)">tools<small>ejecuta el SQL</small></div><span class="flecha">→</span>
+    <div class="paso">fin</div>
+  </div>
+  <table>
+    <tr><th>Paso</th><th>Pregunta (corta: el hilo recuerda)</th><th>Consultas</th></tr>
+    <tr><td>1</td><td>¿Cómo cambió el costo ambulatorio? General, por sexo y por raza, cada una por separado</td><td class="num">3</td></tr>
+    <tr><td>2</td><td>Donde está la mayor variación, ábrelo por grupo etario</td><td class="num">1</td></tr>
+    <tr><td>3</td><td>En el grupo etario que más creció, ¿en qué grupos de enfermedad?</td><td class="num">1</td></tr>
+    <tr><td>4</td><td>¿Cuál es el hallazgo principal para un gerente?</td><td class="num">0</td></tr>
+  </table>
+  <aside class="notes">
+    create_agent(foundry, tools=[ejecutar_sql], system_prompt=..., checkpointer=InMemorySaver()).
+    El hilo: {"configurable": {"thread_id": "ambulatorio"}}. Mostrar el grafo dibujado por el código.
+    El paso 4 no consulta: responde con lo que guardó el hilo.
+  </aside>
+</section>
+
+<section>
+  <div class="cabecera"><span class="chip e3">3 · LangGraph</span><span class="donde">Notebook 03 · Verificación</span></div>
+  <h2>Costo ambulatorio, 2008 → 2009</h2>
+  <div class="cifras">
+    <div class="cifra"><div class="valor">+20,1 %</div><div class="etiqueta">variación general</div></div>
+    <div class="cifra"><div class="valor">3,0</div><div class="etiqueta">rango por sexo (puntos)</div></div>
+    <div class="cifra"><div class="valor">4,2</div><div class="etiqueta">rango por raza (puntos) ← el mayor</div></div>
+  </div>
+  <div class="dos">
+    <div class="caja bien"><h3>Lo que manda la regla</h3><p>Abrir <strong>raza = Hispana</strong>: +16,2 %, a 3,9 puntos del general.</p></div>
+    <div class="caja mal"><h3>Lo que hizo el agente</h3><p>Dijo que el mayor rango era sexo y abrió <strong>Masculino</strong>.<br>
+      <em>"¿Abrió el grupo que dice la regla?"</em> → <span class="no">No</span></p></div>
+  </div>
+  <p class="frase mal">Recuerda bien. Razona mal. Sin verificación, nadie lo nota.</p>
+  <aside class="notes">
+    La regla está en sus instrucciones y aun así se equivocó con sus propias cifras. Esto es lo que
+    justifica la observabilidad (trazas, pruebas de regresión). Notebook 03 completo: USD 0,060624.
+  </aside>
+</section>
+
+<!-- ================================================================== ETAPA 4 -->
+<section class="separador" data-background-color="#b9802f">
+  <div class="numero">Etapa 4</div>
+  <h1>API y front</h1>
+  <p class="que">El mismo agente del notebook 03, ahora como servicio web y con un chat para usarlo.</p>
+  <div class="nb">05_api/app.py · 06_front/app_streamlit.py</div>
+  <div class="logos"><img src="img/fastapi.svg" alt="FastAPI"><img src="img/streamlit.svg" alt="Streamlit"></div>
+</section>
+
+<section>
+  <div class="cabecera"><span class="chip e4">4 · API y front</span><span class="donde">Terminal y navegador</span></div>
+  <h2>Del notebook al servicio</h2>
+  <div class="flujo">
+    <div class="paso"><img src="img/streamlit.svg" alt=""><br>Streamlit<small>el chat · :8501</small></div><span class="flecha">→</span>
+    <div class="paso"><img src="img/fastapi.svg" alt=""><br>FastAPI<small>/chat/stream · :8000</small></div><span class="flecha">→</span>
+    <div class="paso"><img src="img/langgraph.svg" alt=""><br>create_agent<small>el agente del 03</small></div><span class="flecha">→</span>
+    <div class="paso"><img src="img/azure.svg" alt=""><br>Foundry + SQLite<small>el modelo y la base</small></div>
+  </div>
+  <div class="dos">
+    <table>
+      <tr><th>Ruta</th><th>Qué hace</th></tr>
+      <tr><td><code>POST /chat</code></td><td>Respuesta completa</td></tr>
+      <tr><td><code>POST /chat/stream</code></td><td>Cada paso en vivo</td></tr>
+      <tr><td><code>GET /hilos/{hilo}</code></td><td>La memoria del hilo</td></tr>
+    </table>
+    <pre><code class="language-bash" data-trim>
+uvicorn app:app --app-dir 05_api --port 8000
+streamlit run 06_front/app_streamlit.py
+    </code></pre>
+  </div>
+  <a class="ir" href="http://localhost:8000/docs" target="_blank">API → localhost:8000/docs</a>
+  <a class="ir" href="http://localhost:8501" target="_blank">Chat → localhost:8501</a>
+  <aside class="notes">
+    CAMBIO → terminal (los servicios ya están corriendo), luego navegador: /docs para probar la API y
+    Streamlit con los botones Paso 1 a 4. Cada SQL aparece en vivo y debajo el costo (~USD 0,008 por pregunta).
+  </aside>
+</section>
+
+<!-- ================================================================== CIERRE -->
+<section data-background-gradient="linear-gradient(135deg, #0f1e33 0%, #1c3557 100%)" class="portada">
+  <h1 style="font-size:1.9em">Lo que vieron es el motor.</h1>
+  <p class="sub">En la semana de productos de IA le ponemos la carrocería: multiusuario, nube y control de costos.</p>
+  <div class="objetivo">
+    <b>Lo que costó construirlo:</b> notebook 01 USD 0,005 · notebook 02 USD 0,028 ·
+    notebook 03 USD 0,061 · una pregunta por la API ~USD 0,008.<br>
+    <b>Próxima charla:</b> <em>Del agente al producto</em>.
+  </div>
+  <p class="quien">Todo el código, los notebooks con sus resultados y esta presentación están en el repositorio.</p>
+  <aside class="notes">Dejar el enlace del repositorio. Abrir preguntas.</aside>
+</section>
+
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true, slideNumber: "c/t",
+    width: 1280, height: 760, margin: 0.05,
+    transition: "fade",
+    plugins: [RevealNotes, RevealHighlight],   // S = notas del orador
+  });
+</script>
+</body>
+</html>

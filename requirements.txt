@@ -14,6 +14,7 @@ langsmith>=0.1
 # Servicio y front
 fastapi>=0.115
 uvicorn[standard]>=0.32
+streamlit>=1.40
 
 # Notebooks
 jupyterlab>=4.2
