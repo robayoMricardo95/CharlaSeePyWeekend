@@ -1,7 +1,13 @@
 # Agentes
 langchain>=0.3
 langchain-openai>=0.2
+langchain-anthropic>=1.0
 openai>=1.50
+# En Windows 11 con "Control de aplicaciones inteligente", los binarios de
+# jiter 0.17.0 y tiktoken 0.14.0 se bloquean al importar ("Una directiva de
+# Control de aplicaciones bloqueó este archivo"). Estas versiones sí cargan.
+jiter==0.16.0
+tiktoken==0.13.0
 langgraph>=0.2
 langsmith>=0.1
 
