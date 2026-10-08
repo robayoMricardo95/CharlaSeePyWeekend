@@ -195,3 +195,33 @@
 .reveal .lamina-precios table.precios td, .reveal .lamina-precios table.precios th { padding: 5px 10px; }
 .lamina-precios .tres { gap: 14px; margin-top: 0.3em; }
 .lamina-precios .tres .caja { font-size: 0.5em; padding: 10px 14px; }
+
+/* ------------------------------------------------------------- paquetes de LangChain */
+.reveal table.paquetes { font-size: 0.44em; }
+.reveal table.paquetes td, .reveal table.paquetes th { padding: 5px 10px; }
+.reveal table.paquetes code { font-size: 0.95em; }
+.reveal .suave { color: var(--suave); font-style: italic; }
+
+/* ------------------------------------------------------------- etapa 3 */
+.reveal p.definicion {
+  font-size: 0.6em; margin: -0.2em 0 0.5em; padding: 10px 16px; border-radius: 12px;
+  background: #eef0f8; border-left: 6px solid var(--e3);
+}
+.grafo-explicado { display: grid; grid-template-columns: 300px 1fr; gap: 34px; align-items: center; }
+.grafo-explicado img.grafo { width: 100%; margin: 0; border-radius: 12px; background: #fff; border: 1px solid var(--linea); padding: 10px; }
+.reveal ol.compacta { font-size: 0.66em; margin-left: 1.2em; }
+.reveal ol.compacta li + li { margin-top: 0.3em; }
+
+/* ------------------------------------------------------------- cierre: el valor */
+.reveal .slides section.cierre { text-align: center; }
+.cierre h1 { font-size: 1.7em; margin-bottom: 0.4em; }
+.valor-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; text-align: left; }
+.valor-card {
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 14px; padding: 16px 18px; border-top: 5px solid #ffd166;
+}
+.valor-card h4 { color: #fff; font-size: 0.62em; margin: 0 0 0.4em; text-transform: none; font-family: "Inter", sans-serif; }
+.valor-card p { color: #d5deeb; font-size: 0.5em; line-height: 1.4; margin: 0; }
+.valor-card b, .cierre .controles b, .cierre .sub b { color: #ffd166; }
+.cierre .controles { color: #e6edf7; font-size: 0.62em; margin: 0.8em 0 0.4em; }
+.cierre .sub { font-size: 0.55em !important; color: #93a7c4 !important; }

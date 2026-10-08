@@ -50,7 +50,7 @@
     <div class="etapa e2">
       <div class="num">2</div><h4>LangChain</h4>
       <div class="logos"><img src="img/langchain.svg" alt="LangChain"><img src="img/sqlite.svg" alt="SQLite"></div>
-      <ul><li>El diccionario de datos</li><li>Optimizar el costo</li><li>La tool SQL</li></ul>
+      <ul><li>Cómo trabajar sobre nuestros datos</li><li>Cómo optimizar el costo</li><li>Tools para ejecutar tareas</li></ul>
       <code>02_langchain</code>
     </div>
     <div class="etapa e3">
@@ -194,7 +194,7 @@
     <div class="etapa e2">
       <div class="num">2</div><h4>LangChain</h4>
       <div class="logos"><img src="img/langchain.svg" alt="LangChain"><img src="img/sqlite.svg" alt="SQLite"></div>
-      <ul><li>El diccionario de datos</li><li>Optimizar el costo</li><li>La tool SQL</li></ul>
+      <ul><li>Cómo trabajar sobre nuestros datos</li><li>Cómo optimizar el costo</li><li>Tools para ejecutar tareas</li></ul>
       <code>02_langchain</code>
     </div>
     <div class="etapa e3">
@@ -223,10 +223,136 @@
 </section>
 
 <section>
+  <div class="cabecera"><span class="chip e2">2 · LangChain</span><span class="donde">Lo que usamos en los notebooks 01, 02 y 03</span></div>
+  <h2>¿Qué es LangChain?</h2>
+  <p class="intro">Una librería de código abierto con <strong>las piezas para construir aplicaciones con LLMs</strong>:
+     conectarse a cualquier proveedor, armar prompts, darle herramientas al modelo, encadenar pasos y recordar
+     conversaciones. <strong>No es el agente: es de lo que está hecho el agente.</strong></p>
+  <table class="paquetes">
+    <tr><th>Paquete</th><th>Para qué sirve</th><th>En la charla</th></tr>
+    <tr><td><code>langchain-openai</code> · <code>langchain-anthropic</code></td><td>Conectarse a cada proveedor de modelos (<code>ChatOpenAI</code>, <code>ChatAnthropic</code>)</td><td class="ok">01 · 02 · 03</td></tr>
+    <tr><td><code>langchain_core.messages</code></td><td>La conversación: <code>SystemMessage</code>, <code>HumanMessage</code>, <code>AIMessage</code></td><td class="ok">01 · 02</td></tr>
+    <tr><td><code>langchain_core.prompts</code></td><td>Plantillas de prompt con huecos (<code>ChatPromptTemplate</code>)</td><td class="ok">02</td></tr>
+    <tr><td><code>langchain_core.tools</code></td><td>Convertir una función en una acción que el modelo puede pedir (<code>@tool</code>)</td><td class="ok">02 · 03</td></tr>
+    <tr><td><code>langchain_core.runnables</code></td><td>Encadenar pasos con <code>|</code> (<code>RunnablePassthrough</code>)</td><td class="ok">02</td></tr>
+    <tr><td><code>langchain.agents</code></td><td>El agente ya armado: el bucle modelo ⇄ tools (<code>create_agent</code>)</td><td class="ok">03</td></tr>
+    <tr><td><code>langgraph.checkpoint</code></td><td>Memoria: guardar cada conversación por hilo (<code>InMemorySaver</code>)</td><td class="ok">03</td></tr>
+    <tr><td>Loaders · splitters · embeddings · vector stores</td><td>Indexación: leer documentos, partirlos y buscar lo pertinente</td><td class="suave">No hizo falta</td></tr>
+    <tr><td><code>langsmith</code></td><td>Trazas: ver qué hizo el agente, paso a paso, y cuánto costó</td><td class="suave">Siguiente paso</td></tr>
+  </table>
+  <aside class="notes">
+    La indexación no se usó porque el diccionario cabe entero en el prompt (y en caché). Con cientos de tablas
+    haría falta: se indexa y se trae solo lo pertinente. Versiones del proyecto: langchain 1.4, langchain-core 1.6,
+    langchain-openai 1.6, langchain-anthropic 1.7, langgraph 1.2.
+  </aside>
+</section>
+
+<section>
+  <div class="cabecera"><span class="chip e2">2 · LangChain</span><span class="donde">Notebook 01 · ejemplo 2 · Notebook 02 · parte 4</span></div>
+  <h2>La anatomía de un <code>invoke</code></h2>
+  <div class="dos">
+    <pre><code class="language-python" data-trim>
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import SystemMessage, HumanMessage
+
+# 1. El modelo
+modelo = ChatOpenAI(base_url=..., api_key=..., model="gpt-4.1")
+
+# 2. La conversación: una lista de mensajes
+respuesta = modelo.invoke([
+    SystemMessage("Eres un analista de siniestralidad."),
+    HumanMessage("¿Cuánto se pagó en hospitalización en 2009?"),
+])
+
+# 3. La respuesta
+respuesta.text              # lo que escribió
+respuesta.usage_metadata    # los tokens que usó: el costo
+    </code></pre>
+    <table>
+      <tr><th>Mensaje</th><th>Quién habla</th></tr>
+      <tr><td><code>SystemMessage</code></td><td><strong>Las instrucciones de fondo:</strong> quién debe ser el modelo y cómo responder</td></tr>
+      <tr><td><code>HumanMessage</code></td><td><strong>La persona:</strong> la pregunta</td></tr>
+      <tr><td><code>AIMessage</code></td><td><strong>El modelo:</strong> su respuesta, o un pedido de tool</td></tr>
+      <tr><td><code>ToolMessage</code></td><td><strong>Nuestro código:</strong> el resultado de una tool</td></tr>
+    </table>
+  </div>
+  <p class="frase">El modelo solo sabe lo que va en la lista. La memoria es volver a mandarla.</p>
+  <aside class="notes">
+    En el notebook 01, ejemplo 2: el SystemMessage de "profesor de primaria" cambia cómo responde a la misma pregunta.
+    En el 02, "Lo que recibe el modelo": [SystemMessage(sistema), HumanMessage(pregunta)], con el diccionario
+    dentro del SystemMessage (12 187 caracteres).
+  </aside>
+</section>
+
+<section>
+  <div class="cabecera"><span class="chip e2">2 · LangChain</span><span class="donde">Notebook 02 · Parte 1 · Los datos</span></div>
+  <h2>Cómo trabajar sobre nuestros datos: un RAG</h2>
+  <p class="intro"><strong>RAG</strong> (generación aumentada con recuperación): el modelo no conoce nuestros datos,
+     así que antes de responder <strong>le damos el conocimiento que le falta</strong> y él lo usa para escribir la consulta.</p>
+  <div class="flujo">
+    <div class="paso">Pregunta<small>en lenguaje natural</small></div><span class="flecha">→</span>
+    <div class="paso" style="border-color:var(--e2)">Conocimiento<small>el diccionario</small></div><span class="flecha">→</span>
+    <div class="paso">El LLM escribe<small>el SQL</small></div><span class="flecha">→</span>
+    <div class="paso" style="border-color:var(--bien)">La base responde<small>SQLite</small></div><span class="flecha">→</span>
+    <div class="paso">El LLM redacta<small>la respuesta</small></div>
+  </div>
+  <div class="dos">
+    <div class="caja"><h3>La base: CMS DE-SynPUF</h3>
+      <p>Reclamos médicos de Medicare (EE. UU.), <strong>sintéticos y de dominio público</strong>, publicados por el CMS para construir y probar herramientas y para enseñar.</p>
+      <p>Se descarga gratis en <a href="https://www.cms.gov/data-research/statistics-trends-and-reports/medicare-claims-synthetic-public-use-files/cms-2008-2010-data-entrepreneurs-synthetic-public-use-file-de-synpuf/de10-sample-1" target="_blank">cms.gov</a>.</p></div>
+    <div class="caja"><h3>Lo que usa el agente: la sábana</h3>
+      <p><strong>656 147 reclamos</strong>, 25 columnas, 2008 y 2009. Una fila por reclamo, hospitalario y ambulatorio juntos.</p>
+      <p>Un caso: una afiliada de Oregón, 69 años, 4 reclamos en 2009. La aseguradora pagó 3 160 y la atención costó 4 278.</p></div>
+  </div>
+  <aside class="notes">
+    Advertir en voz alta: los datos son sintéticos; el CMS alteró las relaciones a propósito. No sirven para
+    concluir nada sobre Medicare. Aquí el "recuperar" del RAG es simple: el diccionario cabe entero en el prompt.
+  </aside>
+</section>
+
+<section>
+  <div class="cabecera"><span class="chip e2">2 · LangChain</span><span class="donde">Notebook 02 · El diccionario de datos</span></div>
+  <h2>El conocimiento del negocio: el diccionario</h2>
+  <div class="dos">
+    <div>
+      <p class="intro">Para capturar ese conocimiento levantamos un <strong>diccionario de variables</strong>
+         (<code>diccionario_sabana.yaml</code>):</p>
+      <ul class="compacta">
+        <li><strong>Qué significa</strong> cada una de las 25 columnas.</li>
+        <li><strong>Qué categorías</strong> tiene: los valores exactos.</li>
+        <li><strong>Cuándo usar una u otra</strong>: <code>monto_pagado</code> o <code>monto_total</code>.</li>
+        <li><strong>7 trampas del dato</strong>: lo que hace fallar una consulta que "corre bien".</li>
+        <li><strong>10 consultas de ejemplo</strong>: la pregunta, el SQL y el resultado verificado.</li>
+      </ul>
+    </div>
+    <pre><code class="language-yaml" data-trim>
+columnas:
+  ambito:       {valores: [Hospitalario, Ambulatorio],
+                 desc: "Hospitalario = internación"}
+  monto_pagado: {desc: "Lo que pagó la aseguradora.
+                        Métrica de costo POR DEFECTO."}
+  monto_total:  {desc: "Costo completo de la atención"}
+
+consultas_ejemplo:
+  - pregunta: ¿Cuánto se pagó en hospitalización en 2009?
+    sql: |
+      SELECT sum(monto_pagado) AS pagado
+      FROM sabana
+      WHERE ambito = 'Hospitalario' AND anio = 2009;
+    resultado: "245 512 790,00"
+    </code></pre>
+  </div>
+  <aside class="notes">
+    Extracto simplificado del archivo real. Los ejemplos se activan por módulo: 10 básicos en el 02; los
+    comparativos y de varios pasos se suman en el 03.
+  </aside>
+</section>
+
+
+<section>
   <div class="cabecera"><span class="chip e2">2 · LangChain</span><span class="donde">Notebook 02 · Partes 1 y 2</span></div>
-  <h2>El dato y el diccionario</h2>
-  <p>La tabla <code>sabana</code>: <strong>una fila por reclamo</strong>, 656 147 reclamos de 2008 y 2009.
-     Un caso: una afiliada de Oregón, 69 años, 4 reclamos en 2009; la aseguradora pagó 3 160 y la atención costó 4 278.</p>
+  <h2>Sin diccionario y con diccionario</h2>
+  <p class="intro">Mismo modelo, misma pregunta. Lo único que cambia es el contexto que recibe.</p>
   <div class="dos">
     <div class="caja mal"><h3>Escenario 1 · solo los nombres de las columnas</h3>
       <pre><code class="language-sql" data-trim>WHERE ambito = 'hospitalización'</code></pre>
@@ -288,22 +414,6 @@ cadena_completa = (
   </aside>
 </section>
 
-<section>
-  <div class="cabecera"><span class="chip e2">2 · LangChain</span><span class="donde">Notebook 02 · Parte 5</span></div>
-  <h2>"¿Y comparado con el año anterior, en qué grupos se concentró el alza?"</h2>
-  <ul>
-    <li><strong>Memoria</strong> en LangChain = volver a mandar la conversación anterior en la lista de mensajes.</li>
-    <li>Con memoria, el agente filtró hospitalización y advirtió que el costo <strong>bajó</strong>: no hubo alza.</li>
-    <li><strong>No siempre acierta:</strong> en corridas de prueba citó un total hospitalario de 2008 que no consultó
-        (258 206 340 y 258 185 900). El real: <strong>258 063 920</strong>.</li>
-  </ul>
-  <p class="frase mal">Responde con seguridad. Nadie revisa cuándo se equivoca.</p>
-  <aside class="notes">
-    Mostrar la verificación del notebook: el SQL filtró hospitalización (Sí) y advirtió que bajó (Sí).
-    El argumento: la verificación la hicimos nosotros, a mano. Puente a LangGraph.
-  </aside>
-</section>
-
 <!-- ================================================================== RUTA (antes de la etapa 3) -->
 <section class="ruta-slide activa-3">
   <h2>La ruta: cuatro etapas</h2>
@@ -318,7 +428,7 @@ cadena_completa = (
     <div class="etapa e2">
       <div class="num">2</div><h4>LangChain</h4>
       <div class="logos"><img src="img/langchain.svg" alt="LangChain"><img src="img/sqlite.svg" alt="SQLite"></div>
-      <ul><li>El diccionario de datos</li><li>Optimizar el costo</li><li>La tool SQL</li></ul>
+      <ul><li>Cómo trabajar sobre nuestros datos</li><li>Cómo optimizar el costo</li><li>Tools para ejecutar tareas</li></ul>
       <code>02_langchain</code>
     </div>
     <div class="etapa e3">
@@ -348,6 +458,7 @@ cadena_completa = (
 
 <section>
   <div class="cabecera"><span class="chip e3">3 · LangGraph</span><span class="donde">Notebook 03 · Partes 1 y 2</span></div>
+  <p class="definicion"><strong>LangGraph</strong> es el framework para <strong>orquestar agentes</strong>: arma el trabajo como un <strong>grafo</strong> de pasos que puede repetirse, decide qué sigue en cada momento y guarda la <strong>memoria</strong> de cada conversación.</p>
   <h2>Un hilo, cuatro pasos, cada uno abre el anterior</h2>
   <div class="flujo">
     <div class="paso">inicio</div><span class="flecha">→</span>
@@ -370,24 +481,30 @@ cadena_completa = (
 </section>
 
 <section>
-  <div class="cabecera"><span class="chip e3">3 · LangGraph</span><span class="donde">Notebook 03 · Verificación</span></div>
-  <h2>Costo ambulatorio, 2008 → 2009</h2>
-  <div class="cifras">
-    <div class="cifra"><div class="valor">+20,1 %</div><div class="etiqueta">variación general</div></div>
-    <div class="cifra"><div class="valor">3,0</div><div class="etiqueta">rango por sexo (puntos)</div></div>
-    <div class="cifra"><div class="valor">4,2</div><div class="etiqueta">rango por raza (puntos) ← el mayor</div></div>
+  <div class="cabecera"><span class="chip e3">3 · LangGraph</span><span class="donde">Notebook 03 · El grafo que dibuja el propio código</span></div>
+  <h2>Esto ya es un agente</h2>
+  <div class="grafo-explicado">
+    <img class="grafo" src="img/grafo_agente.png" alt="Grafo del agente: start, model, tools, end">
+    <div>
+      <p class="intro">Tiene la capacidad de <strong>razonar qué necesita y cuándo lo necesita</strong>. Así funciona cuando le hacemos una pregunta:</p>
+      <ol class="compacta">
+        <li><strong>__start__</strong> · llega la pregunta.</li>
+        <li><strong>model</strong> · el modelo piensa: ¿me faltan datos?</li>
+        <li><strong>tools</strong> · si le faltan, pide una consulta SQL; nuestro código la ejecuta y le devuelve el resultado.</li>
+        <li>Vuelve a <strong>model</strong>, y repite las veces que haga falta: en el paso 1 decidió hacer <strong>3 consultas</strong>.</li>
+        <li><strong>__end__</strong> · cuando ya tiene lo que necesita, responde.</li>
+      </ol>
+      <p class="nota">Las líneas punteadas son decisiones del modelo, no de nuestro código. El checkpointer guarda
+         cada vuelta en el hilo: por eso el paso 4 respondió sin consultar nada.</p>
+    </div>
   </div>
-  <div class="dos">
-    <div class="caja bien"><h3>Lo que manda la regla</h3><p>Abrir <strong>raza = Hispana</strong>: +16,2 %, a 3,9 puntos del general.</p></div>
-    <div class="caja mal"><h3>Lo que hizo el agente</h3><p>Dijo que el mayor rango era sexo y abrió <strong>Masculino</strong>.<br>
-      <em>"¿Abrió el grupo que dice la regla?"</em> → <span class="no">No</span></p></div>
-  </div>
-  <p class="frase mal">Recuerda bien. Razona mal. Sin verificación, nadie lo nota.</p>
   <aside class="notes">
-    La regla está en sus instrucciones y aun así se equivocó con sus propias cifras. Esto es lo que
-    justifica la observabilidad (trazas, pruebas de regresión). Notebook 03 completo: USD 0,060624.
+    La imagen es la que dibuja el notebook 03 con agente.get_graph().draw_mermaid_png(). Un chatbot responde
+    en una sola vuelta; el agente decide si actúa, cuántas veces y cuándo terminar. Esa diferencia es el ciclo
+    model ⇄ tools.
   </aside>
 </section>
+
 
 <!-- ================================================================== RUTA (antes de la etapa 4) -->
 <section class="ruta-slide activa-4">
@@ -403,7 +520,7 @@ cadena_completa = (
     <div class="etapa e2">
       <div class="num">2</div><h4>LangChain</h4>
       <div class="logos"><img src="img/langchain.svg" alt="LangChain"><img src="img/sqlite.svg" alt="SQLite"></div>
-      <ul><li>El diccionario de datos</li><li>Optimizar el costo</li><li>La tool SQL</li></ul>
+      <ul><li>Cómo trabajar sobre nuestros datos</li><li>Cómo optimizar el costo</li><li>Tools para ejecutar tareas</li></ul>
       <code>02_langchain</code>
     </div>
     <div class="etapa e3">
@@ -461,16 +578,27 @@ streamlit run 06_front/app_streamlit.py
 </section>
 
 <!-- ================================================================== CIERRE -->
-<section data-background-gradient="linear-gradient(135deg, #0f1e33 0%, #1c3557 100%)" class="portada">
-  <h1 style="font-size:1.9em">Lo que vieron es el motor.</h1>
-  <p class="sub">En la semana de productos de IA le ponemos la carrocería: multiusuario, nube y control de costos.</p>
-  <div class="objetivo">
-    <b>Lo que costó construirlo:</b> notebook 01 USD 0,005 · notebook 02 USD 0,028 ·
-    notebook 03 USD 0,061 · una pregunta por la API ~USD 0,008.<br>
-    <b>Próxima charla:</b> <em>Del agente al producto</em>.
+<section class="portada cierre" data-background-gradient="linear-gradient(135deg, #0f1e33 0%, #1c3557 100%)">
+  <h1>¿Qué gana una organización?</h1>
+  <div class="valor-grid">
+    <div class="valor-card"><h4>Encontrar el desperdicio</h4>
+      <p>Investigar hallazgos de uso ineficiente de recursos en minutos y no en días: preguntar, abrir y volver a preguntar.</p></div>
+    <div class="valor-card"><h4>Entender a los clientes</h4>
+      <p>Detectar cómo cambia su patrón de uso y de costo, abriendo por las variables que importan, una pregunta a la vez.</p></div>
+    <div class="valor-card"><h4>Estadística sin cuello de botella</h4>
+      <p>Análisis que antes no se hacían porque negocio dependía del equipo técnico para cada consulta.</p></div>
+    <div class="valor-card"><h4>Democratizar la información</h4>
+      <p>Acceso a las fuentes de datos sin un experto al lado: con buenos controles, el agente <b>sugiere y corrige</b> las variables al preguntar.</p></div>
   </div>
-  <p class="quien">Todo el código, los notebooks con sus resultados y esta presentación están en el repositorio.</p>
-  <aside class="notes">Dejar el enlace del repositorio. Abrir preguntas.</aside>
+  <p class="controles">La condición: <b>controles y filtros</b>. Un diccionario de negocio, reglas claras, solo lectura y verificación de cada cifra.</p>
+  <p class="sub">Lo que vieron es el motor. En la semana de productos de IA le ponemos la carrocería:
+     multiusuario, nube y control de costos. <b>Próxima charla: <em>Del agente al producto</em>.</b></p>
+  <aside class="notes">
+    Vender el valor: optimización de la investigación de desperdicio, cambio de patrón de los clientes,
+    estadística sin dependencia técnica y democratización del acceso a la información. Remarcar la condición:
+    sin controles (diccionario, reglas, solo lectura, verificación) no se puede confiar en el resultado,
+    como se vio en las demos. Dejar el enlace del repositorio y abrir preguntas.
+  </aside>
 </section>
 
 </div></div>
